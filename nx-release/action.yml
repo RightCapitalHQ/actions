@@ -1,0 +1,20 @@
+name: 'nx-release'
+description: 'Create git tags and GitHub releases for an Nx-managed monorepo'
+inputs:
+  token:
+    description: 'GitHub token used to create GitHub releases and perform other GitHub API operations'
+    required: true
+  create-release:
+    description: 'Whether to create GitHub releases'
+    required: false
+    default: 'true'
+  dry-run:
+    description: 'Run without making any changes'
+    required: false
+    default: 'false'
+outputs:
+  new-tags:
+    description: 'JSON array of newly created git tags'
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

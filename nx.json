@@ -1,0 +1,73 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "plugins": [
+    {
+      "plugin": "@nx/js/typescript",
+      "options": {
+        "build": {
+          "targetName": "build",
+          "configName": "tsconfig.lib.json"
+        },
+        "typecheck": {
+          "targetName": "typecheck"
+        }
+      }
+    }
+  ],
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "cache": true
+    }
+  },
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/*.test.ts",
+      "!{projectRoot}/**/*.spec.ts",
+      "!{projectRoot}/vitest.config.*"
+    ],
+    "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json"]
+  },
+  "release": {
+    "groups": {
+      "nx-release": {
+        "projects": ["nx-release", "nx-release-pr"],
+        "projectsRelationship": "fixed"
+      }
+    },
+    "versionPlans": {
+      "ignorePatternsForPlanCheck": [
+        ".*ignore",
+        ".yamllint",
+        "prettier.config.*",
+        "eslint.config.*",
+        ".pnpm-store/**",
+        ".vscode/**",
+        "pnpm-lock.yaml"
+      ]
+    },
+    "version": {
+      "preVersionCommand": "pnpm run build"
+    },
+    "git": {
+      "commit": true,
+      "tag": true,
+      "commitMessage": "chore(release): applying package updates"
+    },
+    "changelog": {
+      "projectChangelogs": true,
+      "workspaceChangelog": false
+    },
+    "releaseTag": {
+      "pattern": "{projectName}@v{version}"
+    }
+  }
+}

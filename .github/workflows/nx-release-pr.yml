@@ -1,0 +1,71 @@
+name: Reusable NX Release PR
+
+on:
+  workflow_call:
+    inputs:
+      release-branch:
+        description: 'Branch name for the release PR'
+        type: string
+        default: 'release'
+      base:
+        description: 'Base branch for the PR (defaults to repository default branch)'
+        type: string
+        default: ''
+      pr-title:
+        description: 'Pull request title'
+        type: string
+        default: 'chore(release): release packages'
+      banner:
+        description: 'Markdown banner prepended to the PR body'
+        type: string
+        default: ''
+      commit-message:
+        description: 'Git commit message for the version bump'
+        type: string
+        default: 'chore(release): prepare release'
+      label:
+        description: 'Label to apply to the PR'
+        type: string
+        default: 'release'
+      node-version-file:
+        description: 'Path to .node-version or .nvmrc file'
+        type: string
+        default: '.node-version'
+    secrets:
+      token:
+        description: 'GitHub token for git push and PR operations'
+        required: true
+
+concurrency:
+  group: release-pr
+  cancel-in-progress: true
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.token }}
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: pnpm
+
+      - run: pnpm install
+
+      - uses: ./nx-release-pr
+        with:
+          release-branch: ${{ inputs.release-branch }}
+          base: ${{ inputs.base }}
+          pr-title: ${{ inputs.pr-title }}
+          banner: ${{ inputs.banner }}
+          commit-message: ${{ inputs.commit-message }}
+          label: ${{ inputs.label }}
+          token: ${{ secrets.token }}

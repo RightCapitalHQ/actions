@@ -1,0 +1,14 @@
+name: Release PR
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  release-pr:
+    uses: ./.github/workflows/nx-release-pr.yml
+    with:
+      pr-title: 'chore(release): release packages'
+    secrets:
+      token: ${{ secrets.REPO_AUTOMATION_TOKEN }}
