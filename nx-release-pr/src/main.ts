@@ -32,6 +32,10 @@ async function run(): Promise<void> {
 
   // Read version plans before releaseVersion() consumes them
   const plans = await readVersionPlans();
+  if (plans.length === 0) {
+    core.info('No version plans found, skipping release PR.');
+    return;
+  }
 
   // Run version bump via Nx programmatic API
   // Explicitly disable git operations here because this action handles

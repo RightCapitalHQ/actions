@@ -3,6 +3,8 @@ name: Release PR
 on:
   push:
     branches: [main]
+    paths:
+      - '.nx/version-plans/**'
   workflow_dispatch:
 
 jobs:
@@ -11,4 +13,4 @@ jobs:
     with:
       pr-title: 'chore(release): release packages'
     secrets:
-      token: ${{ secrets.REPO_AUTOMATION_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}

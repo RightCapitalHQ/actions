@@ -122,7 +122,7 @@ jobs:
   release-pr:
     uses: rightcapitalhq/actions/.github/workflows/nx-release-pr.yml@nx-release-pr@v1
     secrets:
-      token: ${{ secrets.REPO_AUTOMATION_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **`.github/workflows/release.yml`**:
@@ -155,7 +155,7 @@ For more control, reference the actions directly in your workflows:
 - uses: rightcapitalhq/actions/nx-release-pr@nx-release-pr@v1
   with:
     pr-title: 'chore(release): release packages'
-    token: ${{ secrets.REPO_AUTOMATION_TOKEN }}
+    token: ${{ secrets.GITHUB_TOKEN }}
     # release-branch defaults to 'release', base defaults to repo's default branch
 
 # In your release workflow:
@@ -192,7 +192,7 @@ Your repo must have:
 
 2. **pnpm** as the package manager (with `pnpm-workspace.yaml`)
 
-3. **A `REPO_AUTOMATION_TOKEN` secret** — a GitHub PAT with `contents:write` and `pull-requests:write` permissions, used by the release PR workflow to push branches and create PRs
+3. **`GITHUB_TOKEN` permissions** — the reusable workflows set the required permissions (`contents: write` and `pull-requests: write`) automatically, so `secrets.GITHUB_TOKEN` is sufficient for both the `token` inputs
 
 ## Development
 

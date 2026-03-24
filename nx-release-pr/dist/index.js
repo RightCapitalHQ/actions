@@ -40440,6 +40440,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         await $`git config user.name ${'GitHub Actions[bot]'}`;
         await $`git checkout -B ${branch}`;
         const plans = await readVersionPlans();
+        if (0 === plans.length) return void core_info('No version plans found, skipping release PR.');
         const { projectsVersionData, workspaceVersion, releaseGraph } = await (0, index_js_namespaceObject.releaseVersion)({
             dryRun: false,
             verbose: false,
