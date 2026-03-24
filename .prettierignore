@@ -1,2 +1,3 @@
 dist/
+.nx/
 pnpm-lock.yaml
