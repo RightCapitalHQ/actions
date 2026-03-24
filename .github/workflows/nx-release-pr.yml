@@ -35,6 +35,13 @@ on:
       token:
         description: 'GitHub token for git push and PR operations'
         required: true
+    outputs:
+      pr-url:
+        description: 'URL of the created/updated PR'
+        value: ${{ jobs.create-release-pr.outputs.pr-url }}
+      pr-number:
+        description: 'Number of the created/updated PR'
+        value: ${{ jobs.create-release-pr.outputs.pr-number }}
 
 concurrency:
   group: release-pr
@@ -43,6 +50,9 @@ concurrency:
 jobs:
   create-release-pr:
     runs-on: ubuntu-latest
+    outputs:
+      pr-url: ${{ steps.nx-release-pr.outputs.pr-url }}
+      pr-number: ${{ steps.nx-release-pr.outputs.pr-number }}
     permissions:
       contents: write
       pull-requests: write
@@ -60,7 +70,8 @@ jobs:
 
       - run: pnpm install
 
-      - uses: ./nx-release-pr
+      - id: nx-release-pr
+        uses: ./nx-release-pr
         with:
           release-branch: ${{ inputs.release-branch }}
           base: ${{ inputs.base }}

@@ -13,6 +13,7 @@ Create git tags and GitHub releases for an Nx-managed monorepo. Designed to run 
 1. Discovers all packages from the Nx release groups in `nx.json`
 2. Creates git tags for packages whose expected tag does not yet exist, and pushes them
 3. Creates GitHub releases with changelog notes extracted from each package's `CHANGELOG.md`
+4. Optionally publishes packages to npm via `nx release publish`
 
 #### Inputs
 
@@ -21,12 +22,15 @@ Create git tags and GitHub releases for an Nx-managed monorepo. Designed to run 
 | `token`          | Yes      |         | GitHub token used to create GitHub releases |
 | `create-release` | No       | `true`  | Whether to create GitHub releases           |
 | `dry-run`        | No       | `false` | Run without making any changes              |
+| `publish`        | No       | `false` | Whether to publish packages to npm          |
 
 #### Outputs
 
-| Output     | Description                          |
-| ---------- | ------------------------------------ |
-| `new-tags` | JSON array of newly created git tags |
+| Output               | Description                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| `new-tags`           | JSON array of newly created git tags                                                |
+| `published`          | Whether packages were published to npm (`true`/`false`)                             |
+| `published-packages` | JSON array of published packages (e.g. `[{"name":"@scope/pkg","version":"1.0.0"}]`) |
 
 ### nx-release-pr
 
@@ -82,12 +86,13 @@ Developer creates version plan    ──►  Feature PR merged to main
                                             │
                                             ▼
                               Git tags + GitHub releases created
+                              (+ optional npm publish)
 ```
 
 1. **Create a version plan**: On a feature branch, run `pnpm -w change` (or `nx release plan`) to create a version plan file in `.nx/version-plans/`. The file specifies which packages to bump and by how much. Commit it alongside your changes.
 2. **Merge feature PR**: When version plans land on `main` (via merged feature PRs), the Release PR workflow runs `nx-release-pr` to create or update a Release PR on the `release` branch.
 3. **Review and merge**: The Release PR shows a version table and grouped changes. Merge it to `main` when ready.
-4. **Release**: When the Release PR is merged, the Release workflow runs `nx-release` to create git tags and GitHub releases.
+4. **Release**: When the Release PR is merged, the Release workflow runs `nx-release` to create git tags, GitHub releases, and optionally publish to npm.
 
 ### Version Plan Format
 
@@ -146,6 +151,16 @@ jobs:
       token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+To also publish packages to npm, pass `publish: true`:
+
+```yaml
+uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release@v1
+with:
+  publish: true
+secrets:
+  token: ${{ secrets.GITHUB_TOKEN }}
+```
+
 The reusable workflows handle checkout, pnpm/node setup, dependency installation, and action invocation.
 
 ### Option B: Direct Action References
@@ -195,7 +210,7 @@ Your repo must have:
 
 2. **pnpm** as the package manager (with `pnpm-workspace.yaml`)
 
-3. **`GITHUB_TOKEN` permissions** — the reusable workflows set the required permissions (`contents: write` and `pull-requests: write`) automatically, so `secrets.GITHUB_TOKEN` is sufficient for both the `token` inputs
+3. **`GITHUB_TOKEN` permissions** — the reusable workflows set the required permissions (`contents: write`, `pull-requests: write`, and `id-token: write`) automatically, so `secrets.GITHUB_TOKEN` is sufficient for both the `token` inputs. The `id-token: write` permission enables npm trusted publishing (OIDC provenance) when `publish: true` is used — no npm token secret is needed
 
 ## Development
 

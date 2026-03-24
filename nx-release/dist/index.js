@@ -34309,80 +34309,6 @@ var __webpack_exports__ = {};
     function core_info(message) {
         process.stdout.write(message + external_os_.EOL);
     }
-    const promises_namespaceObject = require("node:fs/promises");
-    const external_node_path_namespaceObject = require("node:path");
-    const nx_json_js_namespaceObject = require("nx/src/config/nx-json.js");
-    const project_graph_js_namespaceObject = require("nx/src/project-graph/project-graph.js");
-    async function discoverPackages() {
-        const nxJson = (0, nx_json_js_namespaceObject.readNxJson)();
-        const projectGraph = await (0, project_graph_js_namespaceObject.createProjectGraphAsync)();
-        const tagPattern = nxJson?.release?.releaseTag?.pattern ?? '{projectName}_v{version}';
-        const groups = nxJson?.release?.groups;
-        if (!groups) throw new Error('No release groups found in nx.json');
-        const projectNames = Array.from(new Set(Object.values(groups).flatMap((group)=>group.projects)));
-        const packages = await Promise.all(projectNames.map(async (projectName)=>{
-            const node = projectGraph.nodes[projectName];
-            if (!node) throw new Error(`Project "${projectName}" not found in project graph`);
-            const { root } = node.data;
-            const npmName = node.data.metadata?.js?.packageName ?? projectName;
-            const packageJsonPath = (0, external_node_path_namespaceObject.join)(root, 'package.json');
-            const packageJson = JSON.parse(await (0, promises_namespaceObject.readFile)(packageJsonPath, 'utf8'));
-            const expectedTag = tagPattern.replace('{projectName}', npmName).replace('{version}', packageJson.version);
-            return {
-                projectName,
-                npmName,
-                version: packageJson.version,
-                root,
-                expectedTag
-            };
-        }));
-        return packages;
-    }
-    var github = __webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/github.js");
-    async function extractLatestNotes(changelogPath) {
-        let content;
-        try {
-            content = await (0, promises_namespaceObject.readFile)(changelogPath, 'utf8');
-        } catch  {
-            return '';
-        }
-        const lines = content.split('\n');
-        let found = false;
-        const noteLines = [];
-        for (const line of lines)if (line.startsWith('## ')) {
-            if (found) break;
-            found = true;
-        } else if (found) noteLines.push(line);
-        return noteLines.join('\n').trim();
-    }
-    async function releaseExists(octokit, tag) {
-        try {
-            await octokit.rest.repos.getReleaseByTag({
-                ...github.context.repo,
-                tag
-            });
-            return true;
-        } catch (error) {
-            if (null != error && 'object' == typeof error && 'status' in error && 404 === error.status) return false;
-            throw error;
-        }
-    }
-    async function createGitHubReleases(packages, token, dryRun) {
-        const octokit = (0, github.getOctokit)(token);
-        for (const pkg of packages)if (dryRun) core_info(`[dry-run] Would create GitHub release for ${pkg.expectedTag}`);
-        else if (await releaseExists(octokit, pkg.expectedTag)) core_info(`GitHub release for ${pkg.expectedTag} already exists, skipping`);
-        else {
-            const changelogPath = (0, external_node_path_namespaceObject.join)(pkg.root, 'CHANGELOG.md');
-            const notes = await extractLatestNotes(changelogPath);
-            await octokit.rest.repos.createRelease({
-                ...github.context.repo,
-                tag_name: pkg.expectedTag,
-                name: pkg.expectedTag,
-                body: notes
-            });
-            core_info(`Created GitHub release for ${pkg.expectedTag}`);
-        }
-    }
     function isPlainObject(value) {
         if ('object' != typeof value || null === value) return false;
         const prototype = Object.getPrototypeOf(value);
@@ -35170,6 +35096,7 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
             verboseInfo
         };
     };
+    const external_node_path_namespaceObject = require("node:path");
     var cross_spawn = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js");
     function pathKey(options = {}) {
         const { env = process.env, platform = process.platform } = options;
@@ -35225,7 +35152,7 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
         env[pathName] = npmRunPath(options);
         return env;
     };
-    const external_node_timers_promises_namespaceObject = require("node:timers/promises");
+    const promises_namespaceObject = require("node:timers/promises");
     const getFinalError = (originalError, message, isSync)=>{
         const ErrorClass = isSync ? ExecaSyncError : ExecaError;
         const options = originalError instanceof DiscardedError ? {} : {
@@ -35697,7 +35624,7 @@ Available signal numbers: ${getAvailableSignalIntegers()}.`;
     const killOnTimeout = async ({ kill, forceKillAfterDelay, context, controllerSignal })=>{
         if (false === forceKillAfterDelay) return;
         try {
-            await (0, external_node_timers_promises_namespaceObject.setTimeout)(forceKillAfterDelay, void 0, {
+            await (0, promises_namespaceObject.setTimeout)(forceKillAfterDelay, void 0, {
                 signal: controllerSignal
             });
             if (kill('SIGKILL')) context.isForcefullyTerminated ??= true;
@@ -35906,7 +35833,7 @@ Please set this option with "pipe" instead.`;
         if (incomingMessages.length > 1) return;
         while(incomingMessages.length > 0){
             await waitForOutgoingMessages(anyProcess, ipcEmitter, wrappedMessage);
-            await external_node_timers_promises_namespaceObject.scheduler["yield"]();
+            await promises_namespaceObject.scheduler["yield"]();
             const message = await handleStrictRequest({
                 wrappedMessage: incomingMessages[0],
                 anyProcess,
@@ -36169,7 +36096,7 @@ Please set this option with "pipe" instead.`;
         if (!ipc) return void throwOnMissingParent();
         if (null === channel) return void abortOnDisconnect();
         getIpcEmitter(anyProcess, channel, isSubprocess);
-        await external_node_timers_promises_namespaceObject.scheduler["yield"]();
+        await promises_namespaceObject.scheduler["yield"]();
     };
     let cancelListening = false;
     const handleAbort = (wrappedMessage)=>{
@@ -36228,7 +36155,7 @@ Please set this option with "pipe" instead.`;
             killAfterTimeout(subprocess, timeout, context, controller)
         ];
     const killAfterTimeout = async (subprocess, timeout, context, { signal })=>{
-        await (0, external_node_timers_promises_namespaceObject.setTimeout)(timeout, void 0, {
+        await (0, promises_namespaceObject.setTimeout)(timeout, void 0, {
             signal
         });
         context.terminationReason ??= 'timeout';
@@ -39500,7 +39427,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         await logLines(linesIterable, stream, fdNumber, verboseInfo);
     };
     const resumeStream = async (stream)=>{
-        await (0, external_node_timers_promises_namespaceObject.setImmediate)();
+        await (0, promises_namespaceObject.setImmediate)();
         if (null === stream.readableFlowing) stream.resume();
     };
     const contents_getStreamContents = async ({ stream, stream: { readableObjectMode }, iterable, fdNumber, encoding, maxBuffer, lines })=>{
@@ -40388,6 +40315,79 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     createExeca(mapNode);
     const $ = createExeca(mapScriptAsync, {}, deepScriptOptions, setScriptSync);
     const { sendMessage: execa_sendMessage, getOneMessage: execa_getOneMessage, getEachMessage: execa_getEachMessage, getCancelSignal: execa_getCancelSignal } = getIpcExport();
+    const external_node_fs_promises_namespaceObject = require("node:fs/promises");
+    const nx_json_js_namespaceObject = require("nx/src/config/nx-json.js");
+    const project_graph_js_namespaceObject = require("nx/src/project-graph/project-graph.js");
+    async function discoverPackages() {
+        const nxJson = (0, nx_json_js_namespaceObject.readNxJson)();
+        const projectGraph = await (0, project_graph_js_namespaceObject.createProjectGraphAsync)();
+        const tagPattern = nxJson?.release?.releaseTag?.pattern ?? '{projectName}_v{version}';
+        const groups = nxJson?.release?.groups;
+        if (!groups) throw new Error('No release groups found in nx.json');
+        const projectNames = Array.from(new Set(Object.values(groups).flatMap((group)=>group.projects)));
+        const packages = await Promise.all(projectNames.map(async (projectName)=>{
+            const node = projectGraph.nodes[projectName];
+            if (!node) throw new Error(`Project "${projectName}" not found in project graph`);
+            const { root } = node.data;
+            const npmName = node.data.metadata?.js?.packageName ?? projectName;
+            const packageJsonPath = (0, external_node_path_namespaceObject.join)(root, 'package.json');
+            const packageJson = JSON.parse(await (0, external_node_fs_promises_namespaceObject.readFile)(packageJsonPath, 'utf8'));
+            const expectedTag = tagPattern.replace('{projectName}', npmName).replace('{version}', packageJson.version);
+            return {
+                projectName,
+                npmName,
+                version: packageJson.version,
+                root,
+                expectedTag
+            };
+        }));
+        return packages;
+    }
+    var github = __webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/github.js");
+    async function extractLatestNotes(changelogPath) {
+        let content;
+        try {
+            content = await (0, external_node_fs_promises_namespaceObject.readFile)(changelogPath, 'utf8');
+        } catch  {
+            return '';
+        }
+        const lines = content.split('\n');
+        let found = false;
+        const noteLines = [];
+        for (const line of lines)if (line.startsWith('## ')) {
+            if (found) break;
+            found = true;
+        } else if (found) noteLines.push(line);
+        return noteLines.join('\n').trim();
+    }
+    async function releaseExists(octokit, tag) {
+        try {
+            await octokit.rest.repos.getReleaseByTag({
+                ...github.context.repo,
+                tag
+            });
+            return true;
+        } catch (error) {
+            if (null != error && 'object' == typeof error && 'status' in error && 404 === error.status) return false;
+            throw error;
+        }
+    }
+    async function createGitHubReleases(packages, token, dryRun) {
+        const octokit = (0, github.getOctokit)(token);
+        for (const pkg of packages)if (dryRun) core_info(`[dry-run] Would create GitHub release for ${pkg.expectedTag}`);
+        else if (await releaseExists(octokit, pkg.expectedTag)) core_info(`GitHub release for ${pkg.expectedTag} already exists, skipping`);
+        else {
+            const changelogPath = (0, external_node_path_namespaceObject.join)(pkg.root, 'CHANGELOG.md');
+            const notes = await extractLatestNotes(changelogPath);
+            await octokit.rest.repos.createRelease({
+                ...github.context.repo,
+                tag_name: pkg.expectedTag,
+                name: pkg.expectedTag,
+                body: notes
+            });
+            core_info(`Created GitHub release for ${pkg.expectedTag}`);
+        }
+    }
     async function getExistingTags() {
         const { stdout } = await $`git tag --list`;
         return new Set(stdout.split('\n').filter(Boolean));
@@ -40415,12 +40415,32 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         core_setSecret(token);
         const createRelease = getBooleanInput('create-release');
         const dryRun = getBooleanInput('dry-run');
+        const publish = getBooleanInput('publish');
         const packages = await discoverPackages();
         core_info(`Discovered ${packages.length} package(s): ${packages.map((p)=>p.npmName).join(', ')}`);
         const newTags = await createAndPushTags(packages, dryRun);
         setOutput('new-tags', JSON.stringify(newTags));
         if (0 === newTags.length) core_info('No new tags created');
         if (createRelease) await createGitHubReleases(packages, token, dryRun);
+        if (publish) {
+            const newTagSet = new Set(newTags);
+            const publishedPackages = packages.filter((pkg)=>newTagSet.has(pkg.expectedTag)).map((pkg)=>({
+                    name: pkg.npmName,
+                    version: pkg.version
+                }));
+            if (dryRun) {
+                core_info('[dry-run] Would publish to npm');
+                setOutput('published', 'false');
+            } else {
+                await $`pnpm exec nx release publish`;
+                core_info('Published packages to npm');
+                setOutput('published', 'true');
+            }
+            setOutput('published-packages', JSON.stringify(publishedPackages));
+        } else {
+            setOutput('published', 'false');
+            setOutput('published-packages', '[]');
+        }
     }
     run().catch((error)=>{
         setFailed(error instanceof Error ? error.message : String(error));

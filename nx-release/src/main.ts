@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import { $ } from 'execa';
 
 import { discoverPackages } from './discover.js';
 import { createGitHubReleases } from './release.js';
@@ -9,6 +10,7 @@ async function run(): Promise<void> {
   core.setSecret(token);
   const createRelease = core.getBooleanInput('create-release');
   const dryRun = core.getBooleanInput('dry-run');
+  const publish = core.getBooleanInput('publish');
 
   // 1. Discover packages
   const packages = await discoverPackages();
@@ -27,6 +29,27 @@ async function run(): Promise<void> {
   // 3. Create GitHub releases
   if (createRelease) {
     await createGitHubReleases(packages, token, dryRun);
+  }
+
+  // 4. Publish to npm
+  if (publish) {
+    const newTagSet = new Set(newTags);
+    const publishedPackages = packages
+      .filter((pkg) => newTagSet.has(pkg.expectedTag))
+      .map((pkg) => ({ name: pkg.npmName, version: pkg.version }));
+
+    if (dryRun) {
+      core.info('[dry-run] Would publish to npm');
+      core.setOutput('published', 'false');
+    } else {
+      await $`pnpm exec nx release publish`;
+      core.info('Published packages to npm');
+      core.setOutput('published', 'true');
+    }
+    core.setOutput('published-packages', JSON.stringify(publishedPackages));
+  } else {
+    core.setOutput('published', 'false');
+    core.setOutput('published-packages', '[]');
   }
 }
 

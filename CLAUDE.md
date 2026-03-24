@@ -21,7 +21,7 @@ Each action is built individually with `rslib build` into `dist/index.js` (CJS b
 
 - **Nx workspace** with pnpm, using `@nx/js/typescript` plugin for build/typecheck targets
 - **Two actions** in a fixed release group (always same version):
-  - `nx-release/` — Creates git tags + GitHub releases after a release PR merge
+  - `nx-release/` — Creates git tags + GitHub releases (+ optional npm publish) after a release PR merge
   - `nx-release-pr/` — Creates/updates release PRs with version bumps from `.nx/version-plans/`
 - **Reusable workflows** in `.github/workflows/nx-release.yml` and `nx-release-pr.yml` — full workflows downstream repos can call via `workflow_call`, using `./` local action refs (resolved from this repo at the called ref)
 - **Self-hosting** — this repo dogfoods its own reusable workflow for release-pr (`release-pr.yml` calls `nx-release-pr.yml`), and uses the actions directly for release (`release.yml`)

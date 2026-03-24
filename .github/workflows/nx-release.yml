@@ -11,6 +11,10 @@ on:
         description: 'Run without making any changes'
         type: boolean
         default: false
+      publish:
+        description: 'Whether to publish packages to npm'
+        type: boolean
+        default: false
       node-version-file:
         description: 'Path to .node-version or .nvmrc file'
         type: string
@@ -19,12 +23,27 @@ on:
       token:
         description: 'GitHub token for creating releases and pushing tags'
         required: true
+    outputs:
+      new-tags:
+        description: 'JSON array of newly created git tags'
+        value: ${{ jobs.release.outputs.new-tags }}
+      published:
+        description: 'Whether packages were published to npm'
+        value: ${{ jobs.release.outputs.published }}
+      published-packages:
+        description: 'JSON array of published packages [{name, version}]'
+        value: ${{ jobs.release.outputs.published-packages }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      new-tags: ${{ steps.nx-release.outputs.new-tags }}
+      published: ${{ steps.nx-release.outputs.published }}
+      published-packages: ${{ steps.nx-release.outputs.published-packages }}
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -40,8 +59,10 @@ jobs:
 
       - run: pnpm install
 
-      - uses: ./nx-release
+      - id: nx-release
+        uses: ./nx-release
         with:
           token: ${{ secrets.token }}
           create-release: ${{ inputs.create-release }}
           dry-run: ${{ inputs.dry-run }}
+          publish: ${{ inputs.publish }}

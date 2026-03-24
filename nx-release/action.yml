@@ -12,9 +12,17 @@ inputs:
     description: 'Run without making any changes'
     required: false
     default: 'false'
+  publish:
+    description: 'Whether to publish packages to npm'
+    required: false
+    default: 'false'
 outputs:
   new-tags:
     description: 'JSON array of newly created git tags'
+  published:
+    description: 'Whether packages were published to npm'
+  published-packages:
+    description: 'JSON array of published packages (e.g. [{"name":"@scope/pkg","version":"1.0.0"}])'
 runs:
   using: 'node24'
   main: 'dist/index.js'
