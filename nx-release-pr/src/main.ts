@@ -11,7 +11,7 @@ async function run(): Promise<void> {
   const branch = core.getInput('release-branch') || 'release';
   const base =
     core.getInput('base') ||
-    context.payload.repository?.default_branch ||
+    (context.payload.repository?.default_branch as string | undefined) ||
     'main';
   const prTitle = core.getInput('pr-title', { required: true });
   const banner = core.getInput('banner');

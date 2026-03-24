@@ -12,15 +12,24 @@
   "scripts": {
     "build": "nx run-many -t build",
     "change": "nx release plan",
-    "check": "nx release plan:check"
+    "check": "nx run-many -t lint format:check typecheck",
+    "fix": "pnpm run lint:fix && pnpm run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint --max-warnings=0 .",
+    "lint:fix": "eslint --fix .",
+    "typecheck": "nx run-many -t typecheck"
   },
   "devDependencies": {
     "@nx/js": "22.5.2",
+    "@rightcapital/eslint-config": "65.0.0",
+    "@rightcapital/prettier-config": "8.0.2",
     "@rslib/core": "0.19.6",
     "@types/node": "24.10.13",
+    "eslint": "10.1.0",
     "execa": "9.6.1",
     "nx": "22.5.2",
-    "tsx": "4.21.0",
+    "prettier": "3.8.1",
     "typescript": "5.9.3"
   },
   "packageManager": "pnpm@10.30.1"

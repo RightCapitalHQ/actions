@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/nx/schemas/project-schema.json",
+  "name": "@rightcapital/actions",
+  "targets": {
+    "build": {
+      "executor": "nx:noop"
+    },
+    "typecheck": {
+      "executor": "nx:noop"
+    }
+  }
+}

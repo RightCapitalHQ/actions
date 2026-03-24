@@ -37,4 +37,4 @@ jobs:
         if: steps.nx-release.outputs.new-tags != '[]'
         env:
           NEW_TAGS: ${{ steps.nx-release.outputs.new-tags }}
-        run: npx tsx scripts/update-major-tags.ts "$NEW_TAGS"
+        run: node scripts/update-major-tags.ts "$NEW_TAGS"

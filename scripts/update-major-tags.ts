@@ -6,12 +6,12 @@
  * (e.g., `nx-release@v1`) so downstream consumers can pin to a major version.
  *
  * Usage:
- *   tsx scripts/update-major-tags.ts '["nx-release@v1.2.3","nx-release-pr@v1.2.3"]'
+ *   node scripts/update-major-tags.ts '["nx-release@v1.2.3","nx-release-pr@v1.2.3"]'
  */
 
 import { $ } from 'execa';
 
-const newTags: string[] = JSON.parse(process.argv[2] || '[]');
+const newTags = JSON.parse(process.argv[2] || '[]') as string[];
 
 for (const tag of newTags) {
   // Match tags like `nx-release@v1.2.3` → major tag `nx-release@v1`

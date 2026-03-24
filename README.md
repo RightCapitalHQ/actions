@@ -43,15 +43,15 @@ Create or update a release PR for an Nx-managed monorepo. Designed to run on pus
 
 #### Inputs
 
-| Input            | Required | Default                  | Description                                            |
-| ---------------- | -------- | ------------------------ | ------------------------------------------------------ |
-| `release-branch` | No       | `release`                | Branch name for the release PR                         |
-| `base`           | No       | repo's default branch    | Base branch for the PR (falls back to default branch)  |
-| `pr-title`       | Yes      |                          | Pull request title                                     |
-| `banner`         | No       | `''`                     | Markdown banner prepended to the PR body               |
-| `commit-message` | No       | `chore(release): prepare release` | Git commit message for the version bump       |
-| `label`          | No       | `release`                | Label to apply to the PR                               |
-| `token`          | Yes      |                          | GitHub token for git push and PR operations            |
+| Input            | Required | Default                           | Description                                           |
+| ---------------- | -------- | --------------------------------- | ----------------------------------------------------- |
+| `release-branch` | No       | `release`                         | Branch name for the release PR                        |
+| `base`           | No       | repo's default branch             | Base branch for the PR (falls back to default branch) |
+| `pr-title`       | Yes      |                                   | Pull request title                                    |
+| `banner`         | No       | `''`                              | Markdown banner prepended to the PR body              |
+| `commit-message` | No       | `chore(release): prepare release` | Git commit message for the version bump               |
+| `label`          | No       | `release`                         | Label to apply to the PR                              |
+| `token`          | Yes      |                                   | GitHub token for git push and PR operations           |
 
 #### Outputs
 
@@ -110,6 +110,7 @@ Bump values: `major`, `minor`, `patch`. For fixed release groups, use the group 
 The simplest way to adopt the nx release flow. Add two workflow files to your repo:
 
 **`.github/workflows/release-pr.yml`**:
+
 ```yaml
 name: Release PR
 
@@ -126,6 +127,7 @@ jobs:
 ```
 
 **`.github/workflows/release.yml`**:
+
 ```yaml
 name: Release
 
@@ -168,7 +170,8 @@ For more control, reference the actions directly in your workflows:
 
 Your repo must have:
 
-1. **Nx configured** with release groups in `nx.json`:
+1. **`nx` as a project dependency**, with release groups configured in `nx.json`:
+
    ```json
    {
      "release": {

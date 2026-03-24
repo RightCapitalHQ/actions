@@ -12,7 +12,7 @@ RightCapital's centralized repository for reusable GitHub Actions. Currently con
 pnpm install              # Install dependencies
 pnpm run build            # Build all actions (nx run-many -t build)
 pnpm -w change            # Create a version plan (nx release plan)
-pnpm -w check             # Validate version plans (nx release plan:check)
+pnpm -w check             # Run all quality checks (lint, format, typecheck) in parallel
 ```
 
 Each action is built individually with `rslib build` into `dist/index.js` (CJS bundle). The `dist/` directories are committed because GitHub Actions requires built JS in the repo.

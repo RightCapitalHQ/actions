@@ -5,6 +5,7 @@
     "module": "preserve",
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
+    "declaration": true,
     "outDir": "lib"
   },
   "include": ["src", "*.mts"]
