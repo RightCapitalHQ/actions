@@ -68,7 +68,7 @@
       "workspaceChangelog": false
     },
     "releaseTag": {
-      "pattern": "{projectName}@v{version}"
+      "pattern": "{projectName}/v{version}"
     }
   }
 }

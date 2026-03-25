@@ -17,7 +17,7 @@ export async function discoverPackages(): Promise<IPackageInfo[]> {
   const projectGraph = await createProjectGraphAsync();
 
   const tagPattern =
-    nxJson?.release?.releaseTag?.pattern ?? '{projectName}_v{version}';
+    nxJson?.release?.releaseTag?.pattern ?? '{projectName}/v{version}';
   const groups = nxJson?.release?.groups;
 
   if (!groups) {

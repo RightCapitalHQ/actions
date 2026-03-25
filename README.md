@@ -126,7 +126,7 @@ on:
 
 jobs:
   release-pr:
-    uses: rightcapitalhq/actions/.github/workflows/nx-release-pr.yml@nx-release-pr@v1
+    uses: rightcapitalhq/actions/.github/workflows/nx-release-pr.yml@nx-release-pr/v1
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -146,7 +146,7 @@ jobs:
     if: >-
       github.event.pull_request.merged == true
       && github.event.pull_request.head.ref == 'release'
-    uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release@v1
+    uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release/v1
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -154,7 +154,7 @@ jobs:
 To also publish packages to npm, pass `publish: true`:
 
 ```yaml
-uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release@v1
+uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release/v1
 with:
   publish: true
 secrets:
@@ -169,14 +169,14 @@ For more control, reference the actions directly in your workflows:
 
 ```yaml
 # In your release-pr workflow:
-- uses: rightcapitalhq/actions/nx-release-pr@nx-release-pr@v1
+- uses: rightcapitalhq/actions/nx-release-pr@nx-release-pr/v1
   with:
     pr-title: 'chore(release): release packages'
     token: ${{ secrets.GITHUB_TOKEN }}
     # release-branch defaults to 'release', base defaults to repo's default branch
 
 # In your release workflow:
-- uses: rightcapitalhq/actions/nx-release@nx-release@v1
+- uses: rightcapitalhq/actions/nx-release@nx-release/v1
   with:
     token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -202,7 +202,7 @@ Your repo must have:
          "workspaceChangelog": false
        },
        "releaseTag": {
-         "pattern": "{projectName}@v{version}"
+         "pattern": "{projectName}/v{version}"
        }
      }
    }
@@ -233,6 +233,7 @@ This creates a version plan file in `.nx/version-plans/`. Commit it with your ch
 
 ### Tag Strategy
 
-- **Precise version tags**: `nx-release@v1.0.0` (created by the nx-release action)
-- **Major version tags**: `nx-release@v1` (updated by `scripts/update-major-tags.ts` post-release)
+- **Precise version tags**: `nx-release/v1.0.0` (created by the nx-release action)
+- **Major version tags**: `nx-release/v1` (updated by `scripts/update-major-tags.ts` post-release)
 - Both `nx-release` and `nx-release-pr` are in a fixed release group — they always share the same version
+- Tags use `/` instead of `@` as separator because the GitHub Actions runner [splits `uses:` on `@`](https://github.com/actions/runner/blob/9728019b24400dd2d99b1ad5e5622a218d588360/src/Runner.Worker/ActionManifestManagerWrapper.cs#L277-L278), making `@`-containing refs ambiguous. [Renovate also supports `/`-separated tags](https://github.com/renovatebot/renovate/pull/35431)

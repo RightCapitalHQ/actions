@@ -30,8 +30,8 @@ Each action is built individually with `rslib build` into `dist/index.js` (CJS b
 
 - Actions live at the repo root (e.g., `nx-release/action.yml`), not nested under `.github/actions/`
 - Actions are Node 24 JavaScript actions built with rslib (CJS format, `nx` externalized)
-- Tag pattern: `{projectName}@v{version}` (e.g., `nx-release@v1.0.0`)
-- Major version moving tags (e.g., `nx-release@v1`) are updated post-release by `scripts/update-major-tags.ts`
-- Downstream repos reference reusable workflows as `rightcapitalhq/actions/.github/workflows/nx-release-pr.yml@nx-release-pr@v1`, or actions directly as `rightcapitalhq/actions/nx-release@nx-release@v1`
+- Tag pattern: `{projectName}/v{version}` (e.g., `nx-release/v1.0.0`). Uses `/` instead of `@` because the [GitHub Actions runner splits on `@`](https://github.com/actions/runner/blob/9728019b24400dd2d99b1ad5e5622a218d588360/src/Runner.Worker/ActionManifestManagerWrapper.cs#L277-L278), making `@`-containing refs ambiguous
+- Major version moving tags (e.g., `nx-release/v1`) are updated post-release by `scripts/update-major-tags.ts`
+- Downstream repos reference reusable workflows as `rightcapitalhq/actions/.github/workflows/nx-release-pr.yml@nx-release-pr/v1`, or actions directly as `rightcapitalhq/actions/nx-release@nx-release/v1`
 - `release-branch` input defaults to `release`, `base` input defaults to the repo's default branch (via `context.payload.repository?.default_branch`)
 - `preVersionCommand: "pnpm run build"` in nx.json ensures dist/ is rebuilt during release PR creation

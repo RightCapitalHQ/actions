@@ -40321,7 +40321,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     async function discoverPackages() {
         const nxJson = (0, nx_json_js_namespaceObject.readNxJson)();
         const projectGraph = await (0, project_graph_js_namespaceObject.createProjectGraphAsync)();
-        const tagPattern = nxJson?.release?.releaseTag?.pattern ?? '{projectName}_v{version}';
+        const tagPattern = nxJson?.release?.releaseTag?.pattern ?? '{projectName}/v{version}';
         const groups = nxJson?.release?.groups;
         if (!groups) throw new Error('No release groups found in nx.json');
         const projectNames = Array.from(new Set(Object.values(groups).flatMap((group)=>group.projects)));
