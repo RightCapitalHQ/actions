@@ -31,6 +31,10 @@ on:
         description: 'Path to .node-version or .nvmrc file'
         type: string
         default: '.node-version'
+      post-version-command:
+        description: 'Command to run after versioning, before committing. Receives NX_RELEASE_PR_BUMPED_PACKAGES and NX_RELEASE_PR_PROJECT_PACKAGES env vars.'
+        type: string
+        default: ''
     outputs:
       pr-url:
         description: 'URL of the created/updated PR'
@@ -38,6 +42,12 @@ on:
       pr-number:
         description: 'Number of the created/updated PR'
         value: ${{ jobs.create-release-pr.outputs.pr-number }}
+      bumped-packages:
+        description: 'JSON array of bumped packages [{name, version, oldVersion}]'
+        value: ${{ jobs.create-release-pr.outputs.bumped-packages }}
+      project-packages:
+        description: 'JSON array of all project packages [{name, version, oldVersion}]'
+        value: ${{ jobs.create-release-pr.outputs.project-packages }}
 
 concurrency:
   group: release-pr
@@ -49,6 +59,8 @@ jobs:
     outputs:
       pr-url: ${{ steps.nx-release-pr.outputs.pr-url }}
       pr-number: ${{ steps.nx-release-pr.outputs.pr-number }}
+      bumped-packages: ${{ steps.nx-release-pr.outputs.bumped-packages }}
+      project-packages: ${{ steps.nx-release-pr.outputs.project-packages }}
     permissions:
       contents: write
       pull-requests: write
@@ -80,7 +92,9 @@ jobs:
       - run: pnpm install
 
       - id: nx-release-pr
-        uses: ./nx-release-pr
+        uses: rightcapitalhq/actions/nx-release-pr@nx-release-pr/v0.3.0
+        env:
+          NODE_PATH: ${{ github.workspace }}/node_modules
         with:
           release-branch: ${{ inputs.release-branch }}
           base: ${{ inputs.base }}
@@ -89,5 +103,6 @@ jobs:
           commit-message: ${{ inputs.commit-message }}
           label: ${{ inputs.label }}
           token: ${{ steps.app-token.outputs.token }}
+          post-version-command: ${{ inputs.post-version-command }}
           git-user-name: '${{ steps.app-token.outputs.app-slug }}[bot]'
           git-user-email: '${{ steps.bot-identity.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'

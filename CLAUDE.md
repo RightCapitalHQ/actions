@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-RightCapital's centralized repository for reusable GitHub Actions. Currently contains `nx-release` and `nx-release-pr` — a pair of actions for managing releases in Nx monorepos via version plans.
+RightCapital's centralized repository for reusable GitHub Actions. Currently contains `nx-release`, `nx-release-pr`, and `nx-release-auto-plan` — a set of actions for managing releases in Nx monorepos via version plans.
 
 ## Build & Development Commands
 
@@ -20,10 +20,11 @@ Each action is built individually with `rslib build` into `dist/index.js` (CJS b
 ## Architecture
 
 - **Nx workspace** with pnpm, using `@nx/js/typescript` plugin for build/typecheck targets
-- **Two actions** in a fixed release group (always same version):
+- **Three actions** in a fixed release group (always same version):
   - `nx-release/` — Creates git tags + GitHub releases (+ optional npm publish) after a release PR merge
   - `nx-release-pr/` — Creates/updates release PRs with version bumps from `.nx/version-plans/`
-- **Reusable workflows** in `.github/workflows/nx-release.yml` and `nx-release-pr.yml` — full workflows downstream repos can call via `workflow_call`, using `./` local action refs (resolved from this repo at the called ref)
+  - `nx-release-auto-plan/` — Auto-generates Nx version plans from commit bump headers (e.g., Renovate PRs)
+- **Reusable workflows** in `.github/workflows/nx-release.yml`, `nx-release-pr.yml`, and `nx-release-auto-plan.yml` — full workflows downstream repos can call via `workflow_call`. Actions are referenced with pinned version tags (e.g., `rightcapitalhq/actions/nx-release-pr@nx-release-pr/v0.3.0`), kept in sync by `scripts/sync-workflow-action-refs.ts` which runs as a `post-version-command` hook during release PR creation
 - **Self-hosting** — this repo dogfoods its own reusable workflow for release-pr (`release-pr.yml` calls `nx-release-pr.yml`), and uses the actions directly for release (`release.yml`)
 
 ## Key Conventions

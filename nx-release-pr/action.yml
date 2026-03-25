@@ -35,11 +35,19 @@ inputs:
     description: 'Git user.email for the version bump commit'
     required: false
     default: 'npm-publisher@rightcapital.com'
+  post-version-command:
+    description: 'Command to run after version bumping and changelog generation, before committing. Receives NX_RELEASE_PR_BUMPED_PACKAGES and NX_RELEASE_PR_PROJECT_PACKAGES as env vars (JSON arrays of {name, version, oldVersion}).'
+    required: false
+    default: ''
 outputs:
   pr-url:
     description: 'URL of the created or updated PR'
   pr-number:
     description: 'Number of the created or updated PR'
+  bumped-packages:
+    description: 'JSON array of bumped packages [{name, version, oldVersion}]'
+  project-packages:
+    description: 'JSON array of all project packages [{name, version, oldVersion}]'
 runs:
   using: 'node24'
   main: 'dist/index.js'

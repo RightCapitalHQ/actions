@@ -47,24 +47,27 @@ Create or update a release PR for an Nx-managed monorepo. Designed to run on pus
 
 #### Inputs
 
-| Input            | Required | Default                           | Description                                           |
-| ---------------- | -------- | --------------------------------- | ----------------------------------------------------- |
-| `release-branch` | No       | `release`                         | Branch name for the release PR                        |
-| `base`           | No       | repo's default branch             | Base branch for the PR (falls back to default branch) |
-| `pr-title`       | Yes      |                                   | Pull request title                                    |
-| `banner`         | No       | `''`                              | Markdown banner prepended to the PR body              |
-| `commit-message` | No       | `chore(release): prepare release` | Git commit message for the version bump               |
-| `label`          | No       | `release`                         | Label to apply to the PR                              |
-| `token`          | Yes      |                                   | GitHub token for git push and PR operations           |
-| `git-user-name`  | No       | `GitHub Actions[bot]`             | Git user.name for the version bump commit             |
-| `git-user-email` | No       | `npm-publisher@rightcapital.com`  | Git user.email for the version bump commit            |
+| Input                  | Required | Default                           | Description                                                                                                                                                                               |
+| ---------------------- | -------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `release-branch`       | No       | `release`                         | Branch name for the release PR                                                                                                                                                            |
+| `base`                 | No       | repo's default branch             | Base branch for the PR (falls back to default branch)                                                                                                                                     |
+| `pr-title`             | Yes      |                                   | Pull request title                                                                                                                                                                        |
+| `banner`               | No       | `''`                              | Markdown banner prepended to the PR body                                                                                                                                                  |
+| `commit-message`       | No       | `chore(release): prepare release` | Git commit message for the version bump                                                                                                                                                   |
+| `label`                | No       | `release`                         | Label to apply to the PR                                                                                                                                                                  |
+| `token`                | Yes      |                                   | GitHub token for git push and PR operations                                                                                                                                               |
+| `git-user-name`        | No       | `GitHub Actions[bot]`             | Git user.name for the version bump commit                                                                                                                                                 |
+| `git-user-email`       | No       | `npm-publisher@rightcapital.com`  | Git user.email for the version bump commit                                                                                                                                                |
+| `post-version-command` | No       | `''`                              | Command to run after versioning, before committing. Receives `NX_RELEASE_PR_BUMPED_PACKAGES` and `NX_RELEASE_PR_PROJECT_PACKAGES` env vars (JSON arrays of `{name, version, oldVersion}`) |
 
 #### Outputs
 
-| Output      | Description                         |
-| ----------- | ----------------------------------- |
-| `pr-url`    | URL of the created or updated PR    |
-| `pr-number` | Number of the created or updated PR |
+| Output             | Description                                                          |
+| ------------------ | -------------------------------------------------------------------- |
+| `pr-url`           | URL of the created or updated PR                                     |
+| `pr-number`        | Number of the created or updated PR                                  |
+| `bumped-packages`  | JSON array of bumped packages (`[{name, version, oldVersion}]`)      |
+| `project-packages` | JSON array of all project packages (`[{name, version, oldVersion}]`) |
 
 ### nx-release-auto-plan
 
@@ -282,5 +285,5 @@ This creates a version plan file in `.nx/version-plans/`. Commit it with your ch
 
 - **Precise version tags**: `nx-release/v1.0.0` (created by the nx-release action)
 - **Major version tags**: `nx-release/v1` (updated by `scripts/update-major-tags.ts` post-release)
-- Both `nx-release` and `nx-release-pr` are in a fixed release group — they always share the same version
+- All three actions (`nx-release`, `nx-release-pr`, `nx-release-auto-plan`) are in a fixed release group — they always share the same version
 - Tags use `/` instead of `@` as separator because the GitHub Actions runner [splits `uses:` on `@`](https://github.com/actions/runner/blob/9728019b24400dd2d99b1ad5e5622a218d588360/src/Runner.Worker/ActionManifestManagerWrapper.cs#L277-L278), making `@`-containing refs ambiguous. [Renovate also supports `/`-separated tags](https://github.com/renovatebot/renovate/pull/35431)

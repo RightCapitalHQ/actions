@@ -12,4 +12,5 @@ jobs:
     uses: ./.github/workflows/nx-release-pr.yml
     with:
       pr-title: 'chore(release): release packages'
+      post-version-command: 'node scripts/sync-workflow-action-refs.ts'
     secrets: inherit

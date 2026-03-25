@@ -40464,6 +40464,24 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             createRelease: false,
             deleteVersionPlans: true
         });
+        const projectPackages = Object.entries(projectsVersionData).map(([name, data])=>({
+                name,
+                version: data.newVersion,
+                oldVersion: data.currentVersion
+            }));
+        const bumpedPackages = projectPackages.filter((p)=>p.version !== p.oldVersion);
+        setOutput('project-packages', JSON.stringify(projectPackages));
+        setOutput('bumped-packages', JSON.stringify(bumpedPackages));
+        const postVersionCommand = getInput('post-version-command');
+        if (postVersionCommand) await $({
+            shell: true,
+            stdio: 'inherit',
+            env: {
+                ...process.env,
+                NX_RELEASE_PR_BUMPED_PACKAGES: JSON.stringify(bumpedPackages),
+                NX_RELEASE_PR_PROJECT_PACKAGES: JSON.stringify(projectPackages)
+            }
+        })`${postVersionCommand}`;
         await $`pnpm install --no-frozen-lockfile`;
         await $`git add .`;
         try {
