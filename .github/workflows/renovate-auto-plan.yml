@@ -1,0 +1,11 @@
+name: Renovate Auto Plan
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  auto-plan:
+    if: startsWith(github.event.pull_request.head.ref, 'renovate/')
+    uses: ./.github/workflows/nx-release-auto-plan.yml
+    secrets: inherit

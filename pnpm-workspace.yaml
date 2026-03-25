@@ -1,3 +1,4 @@
 packages:
   - nx-release
+  - nx-release-auto-plan
   - nx-release-pr

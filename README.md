@@ -66,6 +66,30 @@ Create or update a release PR for an Nx-managed monorepo. Designed to run on pus
 | `pr-url`    | URL of the created or updated PR    |
 | `pr-number` | Number of the created or updated PR |
 
+### nx-release-auto-plan
+
+Auto-generate Nx version plans from commit bump headers. Designed to run on Renovate PRs (or any PR whose commits contain a bump type header).
+
+**What it does:**
+
+1. Parses the HEAD commit message for an `Nx-version-bump: <type>` header (e.g., `Nx-version-bump: patch`)
+2. Runs `nx release plan <type>` to generate a version plan file
+3. Amends the commit with the version plan added and the bump header stripped
+4. Force-pushes the amended commit (triggers CI re-run)
+
+#### Inputs
+
+| Input         | Required | Default             | Description                                     |
+| ------------- | -------- | ------------------- | ----------------------------------------------- |
+| `bump-header` | No       | `Nx-version-bump: ` | Commit message header prefix for bump detection |
+
+#### Outputs
+
+| Output      | Description                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| `amended`   | Whether the commit was amended (`true` if version plan was generated or header stripped) |
+| `bump-type` | The detected bump type (`patch`, `minor`, `major`, `none`, or empty if no header)        |
+
 ## Release Flow
 
 ```
@@ -158,6 +182,22 @@ uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release/v1
 with:
   publish: true
 secrets: inherit
+```
+
+**`.github/workflows/renovate-auto-plan.yml`** (optional, for auto-generating version plans on Renovate PRs):
+
+```yaml
+name: Renovate Auto Plan
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  auto-plan:
+    if: startsWith(github.event.pull_request.head.ref, 'renovate/')
+    uses: rightcapitalhq/actions/.github/workflows/nx-release-auto-plan.yml@nx-release/v1
+    secrets: inherit
 ```
 
 The reusable workflows handle checkout, pnpm/node setup, dependency installation, and action invocation. They use `secrets.RC_BOT_APP_ID` and `secrets.RC_BOT_PRIVATE_KEY` (org-level secrets) to generate a GitHub App installation token via [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token). The git committer identity is automatically derived from the app.

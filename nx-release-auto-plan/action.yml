@@ -1,0 +1,15 @@
+name: 'nx-release-auto-plan'
+description: 'Auto-generate Nx version plans from commit bump headers'
+inputs:
+  bump-header:
+    description: 'Commit message header prefix for bump type detection'
+    required: false
+    default: 'Nx-version-bump: '
+outputs:
+  amended:
+    description: 'Whether the commit was amended (true if version plan was generated or header stripped)'
+  bump-type:
+    description: 'The detected bump type (patch, minor, major, none, or empty if no header found)'
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

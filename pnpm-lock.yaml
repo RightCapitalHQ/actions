@@ -64,6 +64,28 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  nx-release-auto-plan:
+    dependencies:
+      '@actions/core':
+        specifier: 3.0.0
+        version: 3.0.0
+      execa:
+        specifier: 9.6.1
+        version: 9.6.1
+    devDependencies:
+      '@rslib/core':
+        specifier: 0.19.6
+        version: 0.19.6(typescript@5.9.3)
+      '@types/node':
+        specifier: 24.10.13
+        version: 24.10.13
+      nx:
+        specifier: 22.5.2
+        version: 22.5.2
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   nx-release-pr:
     dependencies:
       '@actions/core':

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2022",
+    "module": "preserve",
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "outDir": "lib"
+  },
+  "include": ["src", "*.mts"]
+}

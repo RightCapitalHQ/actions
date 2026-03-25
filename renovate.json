@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>RightCapitalHQ/renovate-config:library"],
+  "assignees": ["frantic1048"],
+  "reviewers": ["frantic1048"],
+  "commitBody": "Nx-version-bump: patch",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": false,
+    "commitBody": "Nx-version-bump: none"
+  },
+  "packageRules": [
+    {
+      "description": "Group all non-major dependency updates together",
+      "groupName": "Non-Major Dependencies",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": false
+    },
+    {
+      "description": "Group all dev dependency updates together",
+      "groupName": "Dev Dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "automerge": false,
+      "commitBody": "Nx-version-bump: none"
+    },
+    {
+      "description": "Mark peer dependency major updates as breaking changes",
+      "groupName": "Major Peer Dependencies",
+      "matchDepTypes": ["peerDependencies"],
+      "matchUpdateTypes": ["major"],
+      "commitBody": "Nx-version-bump: major"
+    }
+  ]
+}

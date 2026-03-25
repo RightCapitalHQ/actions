@@ -39,7 +39,7 @@
   "release": {
     "groups": {
       "nx-release": {
-        "projects": ["nx-release", "nx-release-pr"],
+        "projects": ["nx-release", "nx-release-auto-plan", "nx-release-pr"],
         "projectsRelationship": "fixed"
       }
     },
