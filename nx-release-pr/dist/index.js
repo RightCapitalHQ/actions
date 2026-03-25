@@ -40436,8 +40436,10 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         });
         core_setSecret(token);
         const octokit = (0, github.getOctokit)(token);
-        await $`git config user.email npm-publisher@rightcapital.com`;
-        await $`git config user.name ${'GitHub Actions[bot]'}`;
+        const gitUserName = getInput('git-user-name') || 'GitHub Actions[bot]';
+        const gitUserEmail = getInput('git-user-email') || 'npm-publisher@rightcapital.com';
+        await $`git config user.email ${gitUserEmail}`;
+        await $`git config user.name ${gitUserName}`;
         await $`git checkout -B ${branch}`;
         const plans = await readVersionPlans();
         if (0 === plans.length) return void core_info('No version plans found, skipping release PR.');

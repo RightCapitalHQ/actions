@@ -31,6 +31,14 @@ on:
         description: 'Path to .node-version or .nvmrc file'
         type: string
         default: '.node-version'
+      git-user-name:
+        description: 'Git user.name for the version bump commit'
+        type: string
+        default: 'GitHub Actions[bot]'
+      git-user-email:
+        description: 'Git user.email for the version bump commit'
+        type: string
+        default: 'npm-publisher@rightcapital.com'
     secrets:
       token:
         description: 'GitHub token for git push and PR operations'
@@ -80,3 +88,5 @@ jobs:
           commit-message: ${{ inputs.commit-message }}
           label: ${{ inputs.label }}
           token: ${{ secrets.token }}
+          git-user-name: ${{ inputs.git-user-name }}
+          git-user-email: ${{ inputs.git-user-email }}

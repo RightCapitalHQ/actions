@@ -24,8 +24,11 @@ async function run(): Promise<void> {
   const octokit = getOctokit(token);
 
   // Configure git user
-  await $`git config user.email npm-publisher@rightcapital.com`;
-  await $`git config user.name ${'GitHub Actions[bot]'}`;
+  const gitUserName = core.getInput('git-user-name') || 'GitHub Actions[bot]';
+  const gitUserEmail =
+    core.getInput('git-user-email') || 'npm-publisher@rightcapital.com';
+  await $`git config user.email ${gitUserEmail}`;
+  await $`git config user.name ${gitUserName}`;
 
   // Create or update release branch
   await $`git checkout -B ${branch}`;

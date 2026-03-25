@@ -27,6 +27,14 @@ inputs:
   token:
     description: 'GitHub token for git push and PR operations'
     required: true
+  git-user-name:
+    description: 'Git user.name for the version bump commit'
+    required: false
+    default: 'GitHub Actions[bot]'
+  git-user-email:
+    description: 'Git user.email for the version bump commit'
+    required: false
+    default: 'npm-publisher@rightcapital.com'
 outputs:
   pr-url:
     description: 'URL of the created or updated PR'
