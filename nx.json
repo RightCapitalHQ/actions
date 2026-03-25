@@ -51,7 +51,8 @@
         "eslint.config.*",
         ".pnpm-store/**",
         ".vscode/**",
-        "pnpm-lock.yaml"
+        "pnpm-lock.yaml",
+        "CHANGELOG.md"
       ]
     },
     "version": {
