@@ -19,10 +19,6 @@ on:
         description: 'Path to .node-version or .nvmrc file'
         type: string
         default: '.node-version'
-    secrets:
-      token:
-        description: 'GitHub token for creating releases and pushing tags'
-        required: true
     outputs:
       new-tags:
         description: 'JSON array of newly created git tags'
@@ -45,11 +41,18 @@ jobs:
       contents: write
       id-token: write
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RC_BOT_APP_ID }}
+          private-key: ${{ secrets.RC_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.event.repository.default_branch }}
-          token: ${{ secrets.token }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
@@ -62,7 +65,7 @@ jobs:
       - id: nx-release
         uses: ./nx-release
         with:
-          token: ${{ secrets.token }}
+          token: ${{ steps.app-token.outputs.token }}
           create-release: ${{ inputs.create-release }}
           dry-run: ${{ inputs.dry-run }}
           publish: ${{ inputs.publish }}

@@ -56,6 +56,8 @@ Create or update a release PR for an Nx-managed monorepo. Designed to run on pus
 | `commit-message` | No       | `chore(release): prepare release` | Git commit message for the version bump               |
 | `label`          | No       | `release`                         | Label to apply to the PR                              |
 | `token`          | Yes      |                                   | GitHub token for git push and PR operations           |
+| `git-user-name`  | No       | `GitHub Actions[bot]`             | Git user.name for the version bump commit             |
+| `git-user-email` | No       | `npm-publisher@rightcapital.com`  | Git user.email for the version bump commit            |
 
 #### Outputs
 
@@ -127,8 +129,7 @@ on:
 jobs:
   release-pr:
     uses: rightcapitalhq/actions/.github/workflows/nx-release-pr.yml@nx-release-pr/v1
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
 ```
 
 **`.github/workflows/release.yml`**:
@@ -147,8 +148,7 @@ jobs:
       github.event.pull_request.merged == true
       && github.event.pull_request.head.ref == 'release'
     uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release/v1
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
 ```
 
 To also publish packages to npm, pass `publish: true`:
@@ -157,28 +157,35 @@ To also publish packages to npm, pass `publish: true`:
 uses: rightcapitalhq/actions/.github/workflows/nx-release.yml@nx-release/v1
 with:
   publish: true
-secrets:
-  token: ${{ secrets.GITHUB_TOKEN }}
+secrets: inherit
 ```
 
-The reusable workflows handle checkout, pnpm/node setup, dependency installation, and action invocation.
+The reusable workflows handle checkout, pnpm/node setup, dependency installation, and action invocation. They use `secrets.RC_BOT_APP_ID` and `secrets.RC_BOT_PRIVATE_KEY` (org-level secrets) to generate a GitHub App installation token via [`actions/create-github-app-token`](https://github.com/actions/create-github-app-token). The git committer identity is automatically derived from the app.
 
 ### Option B: Direct Action References
 
-For more control, reference the actions directly in your workflows:
+For more control, reference the actions directly in your workflows. Generate a GitHub App token first, then pass it to the actions:
 
 ```yaml
+# Generate a token (add this step before using the actions):
+- name: Generate GitHub App token
+  id: app-token
+  uses: actions/create-github-app-token@v2
+  with:
+    app-id: ${{ secrets.RC_BOT_APP_ID }}
+    private-key: ${{ secrets.RC_BOT_PRIVATE_KEY }}
+
 # In your release-pr workflow:
 - uses: rightcapitalhq/actions/nx-release-pr@nx-release-pr/v1
   with:
     pr-title: 'chore(release): release packages'
-    token: ${{ secrets.GITHUB_TOKEN }}
-    # release-branch defaults to 'release', base defaults to repo's default branch
+    token: ${{ steps.app-token.outputs.token }}
+    git-user-name: '${{ steps.app-token.outputs.app-slug }}[bot]'
 
 # In your release workflow:
 - uses: rightcapitalhq/actions/nx-release@nx-release/v1
   with:
-    token: ${{ secrets.GITHUB_TOKEN }}
+    token: ${{ steps.app-token.outputs.token }}
 ```
 
 ### Prerequisites
@@ -210,7 +217,7 @@ Your repo must have:
 
 2. **pnpm** as the package manager (with `pnpm-workspace.yaml`)
 
-3. **`GITHUB_TOKEN` permissions** — the reusable workflows set the required permissions (`contents: write`, `pull-requests: write`, and `id-token: write`) automatically, so `secrets.GITHUB_TOKEN` is sufficient for both the `token` inputs. The `id-token: write` permission enables npm trusted publishing (OIDC provenance) when `publish: true` is used — no npm token secret is needed
+3. **GitHub App** — the reusable workflows authenticate using a GitHub App via org-level secrets `RC_BOT_APP_ID` and `RC_BOT_PRIVATE_KEY`. The app needs **Contents** (Read & Write) and **Pull Requests** (Read & Write) permissions. Callers pass these secrets via `secrets: inherit`. The `id-token: write` workflow permission (set automatically by the reusable workflows) enables npm trusted publishing (OIDC provenance) when `publish: true` is used — no npm token secret is needed
 
 ## Development
 

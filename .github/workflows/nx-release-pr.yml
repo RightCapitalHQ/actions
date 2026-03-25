@@ -31,18 +31,6 @@ on:
         description: 'Path to .node-version or .nvmrc file'
         type: string
         default: '.node-version'
-      git-user-name:
-        description: 'Git user.name for the version bump commit'
-        type: string
-        default: 'GitHub Actions[bot]'
-      git-user-email:
-        description: 'Git user.email for the version bump commit'
-        type: string
-        default: 'npm-publisher@rightcapital.com'
-    secrets:
-      token:
-        description: 'GitHub token for git push and PR operations'
-        required: true
     outputs:
       pr-url:
         description: 'URL of the created/updated PR'
@@ -65,10 +53,23 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RC_BOT_APP_ID }}
+          private-key: ${{ secrets.RC_BOT_PRIVATE_KEY }}
+
+      - name: Get bot user ID
+        id: bot-identity
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.token }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
@@ -87,6 +88,6 @@ jobs:
           banner: ${{ inputs.banner }}
           commit-message: ${{ inputs.commit-message }}
           label: ${{ inputs.label }}
-          token: ${{ secrets.token }}
-          git-user-name: ${{ inputs.git-user-name }}
-          git-user-email: ${{ inputs.git-user-email }}
+          token: ${{ steps.app-token.outputs.token }}
+          git-user-name: '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git-user-email: '${{ steps.bot-identity.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
