@@ -8,7 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-plans:
+    runs-on: ubuntu-latest
+    outputs:
+      has-plans: ${{ steps.check.outputs.has-plans }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: .nx/version-plans
+      - id: check
+        run: |
+          if ls .nx/version-plans/*.md 2>/dev/null; then
+            echo "has-plans=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-plans=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release-pr:
+    needs: check-plans
+    if: >-
+      needs.check-plans.outputs.has-plans == 'true'
+      || github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/nx-release-pr.yml
     with:
       pr-title: 'chore(release): release packages'
