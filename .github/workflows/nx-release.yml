@@ -63,7 +63,7 @@ jobs:
       - run: pnpm install
 
       - id: nx-release
-        uses: rightcapitalhq/actions/nx-release@nx-release/v0.3.0
+        uses: rightcapitalhq/actions/nx-release@nx-release/v0.4.0
         env:
           NODE_PATH: ${{ github.workspace }}/node_modules
         with:
