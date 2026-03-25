@@ -1,3 +1,13 @@
+## 0.2.2 (2026-03-25)
+
+### 🩹 Fixes
+
+- simplify auth config with GitHub app identity ([5f9d0b8](https://github.com/RightCapitalHQ/actions/commit/5f9d0b8))
+
+### ❤️ Thank You
+
+- Jiahao Guo @frantic1048
+
 ## 0.2.1 (2026-03-25)
 
 ### 🩹 Fixes
