@@ -21326,7 +21326,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         const rawMessage = (await gitHeadInfo('--format=%B')).stdout.split('\n');
         const bumpTypeLineIndex = rawMessage.findIndex((line)=>line.startsWith(bumpTypeHeader));
         if (-1 === bumpTypeLineIndex) return null;
-        const bumpType = rawMessage[bumpTypeLineIndex].replace(bumpTypeHeader, '');
+        const bumpType = rawMessage[bumpTypeLineIndex].replace(bumpTypeHeader, '').trim();
         const message = rawMessage.slice(0, bumpTypeLineIndex).join('\n').trim();
         return {
             bumpType,

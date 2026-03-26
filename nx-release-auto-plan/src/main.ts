@@ -31,7 +31,9 @@ async function parseBumpTypeAndMessage(): Promise<{
     return null;
   }
 
-  const bumpType = rawMessage[bumpTypeLineIndex].replace(bumpTypeHeader, '');
+  const bumpType = rawMessage[bumpTypeLineIndex]
+    .replace(bumpTypeHeader, '')
+    .trim();
   const message = rawMessage.slice(0, bumpTypeLineIndex).join('\n').trim();
 
   return { bumpType, message };
