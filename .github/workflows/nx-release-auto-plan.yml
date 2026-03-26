@@ -53,6 +53,6 @@ jobs:
       - run: pnpm install
 
       - id: auto-plan
-        uses: rightcapitalhq/actions/nx-release-auto-plan@nx-release-auto-plan/v0.4.0
+        uses: rightcapitalhq/actions/nx-release-auto-plan@nx-release-auto-plan/v0.4.1
         with:
           bump-header: ${{ inputs.bump-header }}
