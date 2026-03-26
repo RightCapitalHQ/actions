@@ -1,3 +1,14 @@
+## 0.4.1 (2026-03-26)
+
+### 🩹 Fixes
+
+- fix: trim bump type to handle getInput whitespace stripping ([a385515](https://github.com/RightCapitalHQ/actions/commit/a385515))
+
+### ❤️ Thank You
+
+- Claude Opus 4.6
+- Jiahao Guo @frantic1048
+
 ## 0.4.0 (2026-03-25)
 
 ### 🚀 Features
