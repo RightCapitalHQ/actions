@@ -1,3 +1,15 @@
+## 0.4.2 (2026-03-27)
+
+### 🩹 Fixes
+
+- fix(nx-release): support top-level `release.projects` config without explicit `groups` ([5bb67c4](https://github.com/RightCapitalHQ/actions/commit/5bb67c4))
+- fix(deps): update non-major dependencies ([f46d828](https://github.com/RightCapitalHQ/actions/commit/f46d828))
+
+### ❤️ Thank You
+
+- Claude Opus 4.6
+- Jiahao Guo @frantic1048
+
 ## 0.4.1 (2026-03-26)
 
 ### 🩹 Fixes
