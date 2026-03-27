@@ -1,6 +1,6 @@
 /*! For license information please see index.js.LICENSE.txt */
 var __webpack_modules__ = {
-    "../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/context.js" (__unused_rspack_module, exports1, __webpack_require__) {
+    "../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/context.js" (__unused_rspack_module, exports1, __webpack_require__) {
         "use strict";
         Object.defineProperty(exports1, "__esModule", {
             value: true
@@ -26,6 +26,7 @@ var __webpack_modules__ = {
                 this.action = process.env.GITHUB_ACTION;
                 this.actor = process.env.GITHUB_ACTOR;
                 this.job = process.env.GITHUB_JOB;
+                this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
                 this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
                 this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
                 this.apiUrl = null != (_a = process.env.GITHUB_API_URL) ? _a : "https://api.github.com";
@@ -55,7 +56,7 @@ var __webpack_modules__ = {
         }
         exports1.Context = Context;
     },
-    "../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/github.js" (__unused_rspack_module, exports1, __webpack_require__) {
+    "../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/github.js" (__unused_rspack_module, exports1, __webpack_require__) {
         "use strict";
         var __createBinding = this && this.__createBinding || (Object.create ? function(o, m, k, k2) {
             if (void 0 === k2) k2 = k;
@@ -92,8 +93,8 @@ var __webpack_modules__ = {
             value: true
         });
         exports1.getOctokit = exports1.context = void 0;
-        const Context = __importStar(__webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/context.js"));
-        const utils_1 = __webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/utils.js");
+        const Context = __importStar(__webpack_require__("../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/context.js"));
+        const utils_1 = __webpack_require__("../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/utils.js");
         exports1.context = new Context.Context();
         function getOctokit(token, options, ...additionalPlugins) {
             const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
@@ -101,7 +102,7 @@ var __webpack_modules__ = {
         }
         exports1.getOctokit = getOctokit;
     },
-    "../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/internal/utils.js" (__unused_rspack_module, exports1, __webpack_require__) {
+    "../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/internal/utils.js" (__unused_rspack_module, exports1, __webpack_require__) {
         "use strict";
         var __createBinding = this && this.__createBinding || (Object.create ? function(o, m, k, k2) {
             if (void 0 === k2) k2 = k;
@@ -199,7 +200,7 @@ var __webpack_modules__ = {
         }
         exports1.getApiBaseUrl = getApiBaseUrl;
     },
-    "../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/utils.js" (__unused_rspack_module, exports1, __webpack_require__) {
+    "../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/utils.js" (__unused_rspack_module, exports1, __webpack_require__) {
         "use strict";
         var __createBinding = this && this.__createBinding || (Object.create ? function(o, m, k, k2) {
             if (void 0 === k2) k2 = k;
@@ -236,8 +237,8 @@ var __webpack_modules__ = {
             value: true
         });
         exports1.getOctokitOptions = exports1.GitHub = exports1.defaults = exports1.context = void 0;
-        const Context = __importStar(__webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/context.js"));
-        const Utils = __importStar(__webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/internal/utils.js"));
+        const Context = __importStar(__webpack_require__("../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/context.js"));
+        const Utils = __importStar(__webpack_require__("../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/internal/utils.js"));
         const core_1 = __webpack_require__("../node_modules/.pnpm/@octokit+core@5.2.2/node_modules/@octokit/core/dist-web/index.js");
         const plugin_rest_endpoint_methods_1 = __webpack_require__("../node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.4.1_@octokit+core@5.2.2/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js");
         const plugin_paginate_rest_1 = __webpack_require__("../node_modules/.pnpm/@octokit+plugin-paginate-rest@9.2.2_@octokit+core@5.2.2/node_modules/@octokit/plugin-paginate-rest/dist-web/index.js");
@@ -40351,7 +40352,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         }));
         return packages;
     }
-    var github = __webpack_require__("../node_modules/.pnpm/@actions+github@6.0.0/node_modules/@actions/github/lib/github.js");
+    var github = __webpack_require__("../node_modules/.pnpm/@actions+github@6.0.1/node_modules/@actions/github/lib/github.js");
     async function extractLatestNotes(changelogPath) {
         let content;
         try {
