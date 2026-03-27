@@ -27,6 +27,10 @@ Each action is built individually with `rslib build` into `dist/index.js` (CJS b
 - **Reusable workflows** in `.github/workflows/nx-release.yml`, `nx-release-pr.yml`, and `nx-release-auto-plan.yml` — full workflows downstream repos can call via `workflow_call`. Actions are referenced with pinned version tags (e.g., `rightcapitalhq/actions/nx-release-pr@nx-release-pr/v0.3.0`), kept in sync by `scripts/sync-workflow-action-refs.ts` which runs as a `post-version-command` hook during release PR creation
 - **Self-hosting** — this repo dogfoods its own reusable workflow for release-pr (`release-pr.yml` calls `nx-release-pr.yml`), and uses the actions directly for release (`release.yml`)
 
+## Branching
+
+- Feature branches always use the `feature/*` prefix (e.g., `feature/support-top-level-projects`)
+
 ## Key Conventions
 
 - Actions live at the repo root (e.g., `nx-release/action.yml`), not nested under `.github/actions/`

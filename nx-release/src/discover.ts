@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { readNxJson } from 'nx/src/config/nx-json.js';
 import { createProjectGraphAsync } from 'nx/src/project-graph/project-graph.js';
+import { findMatchingProjects } from 'nx/src/utils/find-matching-projects.js';
 
 export interface IPackageInfo {
   projectName: string;
@@ -19,17 +20,26 @@ export async function discoverPackages(): Promise<IPackageInfo[]> {
   const tagPattern =
     nxJson?.release?.releaseTag?.pattern ?? '{projectName}/v{version}';
   const groups = nxJson?.release?.groups;
+  const releaseProjects = nxJson?.release?.projects;
 
-  if (!groups) {
-    throw new Error('No release groups found in nx.json');
+  let projectNames: string[];
+
+  if (groups) {
+    // Collect all project names from explicit release groups
+    projectNames = Array.from(
+      new Set(
+        Object.values(groups).flatMap((group) => group.projects as string[]),
+      ),
+    );
+  } else if (releaseProjects) {
+    // Fall back to top-level release.projects (Nx creates an implicit default group)
+    const patterns = Array.isArray(releaseProjects)
+      ? releaseProjects
+      : [releaseProjects];
+    projectNames = findMatchingProjects(patterns, projectGraph.nodes);
+  } else {
+    throw new Error('No release groups or projects found in nx.json');
   }
-
-  // Collect all project names from release groups
-  const projectNames = Array.from(
-    new Set(
-      Object.values(groups).flatMap((group) => group.projects as string[]),
-    ),
-  );
 
   const packages = await Promise.all(
     projectNames.map(async (projectName) => {

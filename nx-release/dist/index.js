@@ -40318,13 +40318,21 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     const external_node_fs_promises_namespaceObject = require("node:fs/promises");
     const nx_json_js_namespaceObject = require("nx/src/config/nx-json.js");
     const project_graph_js_namespaceObject = require("nx/src/project-graph/project-graph.js");
+    const find_matching_projects_js_namespaceObject = require("nx/src/utils/find-matching-projects.js");
     async function discoverPackages() {
         const nxJson = (0, nx_json_js_namespaceObject.readNxJson)();
         const projectGraph = await (0, project_graph_js_namespaceObject.createProjectGraphAsync)();
         const tagPattern = nxJson?.release?.releaseTag?.pattern ?? '{projectName}/v{version}';
         const groups = nxJson?.release?.groups;
-        if (!groups) throw new Error('No release groups found in nx.json');
-        const projectNames = Array.from(new Set(Object.values(groups).flatMap((group)=>group.projects)));
+        const releaseProjects = nxJson?.release?.projects;
+        let projectNames;
+        if (groups) projectNames = Array.from(new Set(Object.values(groups).flatMap((group)=>group.projects)));
+        else if (releaseProjects) {
+            const patterns = Array.isArray(releaseProjects) ? releaseProjects : [
+                releaseProjects
+            ];
+            projectNames = (0, find_matching_projects_js_namespaceObject.findMatchingProjects)(patterns, projectGraph.nodes);
+        } else throw new Error('No release groups or projects found in nx.json');
         const packages = await Promise.all(projectNames.map(async (projectName)=>{
             const node = projectGraph.nodes[projectName];
             if (!node) throw new Error(`Project "${projectName}" not found in project graph`);
