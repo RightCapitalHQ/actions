@@ -1,3 +1,13 @@
+## 0.5.0 (2026-05-19)
+
+### 🚀 Features
+
+- Configure git committer to the GitHub App identity instead of inheriting from the HEAD commit author. This prevents Renovate from force-resetting branches when this action amends a Renovate commit (it now needs to be paired with renovate's gitIgnoredAuthors). ([cd15730](https://github.com/RightCapitalHQ/actions/commit/cd15730))
+
+### ❤️ Thank You
+
+- Jiahao Guo @frantic1048
+
 ## 0.4.2 (2026-03-27)
 
 ### 🩹 Fixes
