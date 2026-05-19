@@ -21316,12 +21316,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     function gitHeadInfo(...args) {
         return $`git rev-list --max-count=1 --no-commit-header ${args} HEAD`;
     }
-    async function configureGitUser() {
-        const gitUser = await gitHeadInfo('--format=%an');
-        const gitEmail = await gitHeadInfo('--format=%ae');
-        await $`git config user.name ${gitUser}`;
-        await $`git config user.email ${gitEmail}`;
-    }
     async function parseBumpTypeAndMessage() {
         const rawMessage = (await gitHeadInfo('--format=%B')).stdout.split('\n');
         const bumpTypeLineIndex = rawMessage.findIndex((line)=>line.startsWith(bumpTypeHeader));
@@ -21347,7 +21341,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         await $`git push --force-with-lease`;
     }
     async function main() {
-        await configureGitUser();
         const bumpTypeAndMessage = await parseBumpTypeAndMessage();
         if (!bumpTypeAndMessage) {
             core_info('Bump type header already processed.');

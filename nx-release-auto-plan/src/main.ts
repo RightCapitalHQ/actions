@@ -10,14 +10,6 @@ function gitHeadInfo(...args: string[]) {
   return $`git rev-list --max-count=1 --no-commit-header ${args} HEAD`;
 }
 
-async function configureGitUser() {
-  const gitUser = await gitHeadInfo('--format=%an');
-  const gitEmail = await gitHeadInfo('--format=%ae');
-
-  await $`git config user.name ${gitUser}`;
-  await $`git config user.email ${gitEmail}`;
-}
-
 async function parseBumpTypeAndMessage(): Promise<{
   bumpType: string;
   message: string;
@@ -69,7 +61,6 @@ async function updateCommit({ message }: { message: string }) {
 }
 
 async function main() {
-  await configureGitUser();
   const bumpTypeAndMessage = await parseBumpTypeAndMessage();
 
   if (!bumpTypeAndMessage) {
