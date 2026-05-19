@@ -44,6 +44,16 @@ jobs:
       - name: Fetch base branch
         run: git fetch origin ${{ github.base_ref }}
 
+      - name: Configure git identity
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          bot_user="${APP_SLUG}[bot]"
+          bot_id="$(gh api "/users/${bot_user}" --jq .id)"
+          git config user.name "${bot_user}"
+          git config user.email "${bot_id}+${bot_user}@users.noreply.github.com"
+
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:

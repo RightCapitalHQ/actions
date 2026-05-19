@@ -93,6 +93,31 @@ Auto-generate Nx version plans from commit bump headers. Designed to run on Reno
 | `amended`   | Whether the commit was amended (`true` if version plan was generated or header stripped) |
 | `bump-type` | The detected bump type (`patch`, `minor`, `major`, `none`, or empty if no header)        |
 
+#### Renovate compatibility
+
+Because this action amends + force-pushes the Renovate commit, recent
+Renovate versions (which compare branch tip against expected manager
+output) will see the branch as "modified" and force-reset it back —
+causing an infinite force-push loop between Renovate and this action.
+
+To prevent that, the reusable workflow commits as the GitHub App
+identity (e.g. `rc-actions-bot[bot]` for RightCapital), and Renovate
+must be configured to ignore that author:
+
+```jsonc
+// renovate.json
+{
+  "gitIgnoredAuthors": [
+    "270908863+rc-actions-bot[bot]@users.noreply.github.com",
+  ],
+}
+```
+
+RightCapital repos get this automatically by extending
+[`github>RightCapitalHQ/renovate-config`](https://github.com/RightCapitalHQ/renovate-config).
+External consumers using their own GitHub App should add the matching
+`<app-user-id>+<app-slug>[bot]@users.noreply.github.com` entry.
+
 ## Release Flow
 
 ```
