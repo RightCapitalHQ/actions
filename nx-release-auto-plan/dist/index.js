@@ -21337,7 +21337,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     }
     async function updateCommit({ message }) {
         await $`git add .`;
-        await $`git commit --amend -m ${message}`;
+        await $`git commit --amend --reset-author -m ${message}`;
         await $`git push --force-with-lease`;
     }
     async function main() {

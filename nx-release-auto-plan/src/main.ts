@@ -56,7 +56,7 @@ async function generateVersionPlan({
 
 async function updateCommit({ message }: { message: string }) {
   await $`git add .`;
-  await $`git commit --amend -m ${message}`;
+  await $`git commit --amend --reset-author -m ${message}`;
   await $`git push --force-with-lease`;
 }
 
