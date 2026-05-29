@@ -2,3 +2,6 @@ packages:
   - nx-release
   - nx-release-auto-plan
   - nx-release-pr
+allowBuilds:
+  nx: false
+  unrs-resolver: false
