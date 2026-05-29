@@ -58,5 +58,5 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install
-      - uses: nrwl/nx-set-shas@v4
+      - uses: nrwl/nx-set-shas@v5
       - run: pnpm exec nx release plan:check
