@@ -1,3 +1,17 @@
+## 0.6.0 (2026-05-29)
+
+### 🚀 Features
+
+- Reset git author when amending Renovate commits ([36685ce](https://github.com/RightCapitalHQ/actions/commit/36685ce))
+
+### 🩹 Fixes
+
+- fix(deps): update non-major dependencies ([cf0639a](https://github.com/RightCapitalHQ/actions/commit/cf0639a))
+
+### ❤️ Thank You
+
+- Jiahao Guo @frantic1048
+
 ## 0.5.0 (2026-05-19)
 
 ### 🚀 Features
