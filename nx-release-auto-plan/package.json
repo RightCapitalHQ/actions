@@ -12,7 +12,7 @@
   "devDependencies": {
     "@rslib/core": "0.21.5",
     "@types/node": "24.12.4",
-    "nx": "22.7.2",
+    "nx": "22.7.3",
     "typescript": "5.9.3"
   },
   "peerDependencies": {
