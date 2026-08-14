@@ -8,7 +8,7 @@
   "dependencies": {
     "@actions/core": "3.0.1",
     "@actions/github": "9.1.1",
-    "execa": "9.6.1"
+    "execa": "10.0.1"
   },
   "devDependencies": {
     "@rslib/core": "0.21.5",
