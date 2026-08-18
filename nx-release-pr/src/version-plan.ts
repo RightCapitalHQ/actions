@@ -7,6 +7,7 @@ export interface IVersionPlan {
   bumps: Record<string, string>;
   description: string;
   highestBump: BumpType;
+  relativePath: string;
 }
 
 const BUMP_PRIORITY: Record<string, number> = {
@@ -30,7 +31,9 @@ function getHighestBump(bumpValues: string[]): BumpType {
   return highest;
 }
 
-export function parseVersionPlan(content: string): IVersionPlan | null {
+export function parseVersionPlan(
+  content: string,
+): Omit<IVersionPlan, 'relativePath'> | null {
   const lines = content.split('\n');
 
   // Find front matter delimiters (---)
@@ -93,11 +96,12 @@ export async function readVersionPlans(): Promise<IVersionPlan[]> {
     return [];
   }
 
-  const contents = await Promise.all(
-    files.map((file) => readFile(join(dir, file), 'utf8')),
+  const plans = await Promise.all(
+    files.map(async (file) => {
+      const plan = parseVersionPlan(await readFile(join(dir, file), 'utf8'));
+      return plan ? { ...plan, relativePath: join(dir, file) } : null;
+    }),
   );
 
-  return contents
-    .map((content) => parseVersionPlan(content))
-    .filter((plan): plan is IVersionPlan => plan !== null);
+  return plans.filter((plan): plan is IVersionPlan => plan !== null);
 }

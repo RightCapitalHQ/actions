@@ -72,6 +72,21 @@ async function run(): Promise<void> {
     deleteVersionPlans: true,
   });
 
+  // Nx can return before deleting version plans when changelog generation
+  // produces no file changes. One example is a renamed package reusing a
+  // changelog that already contains the new package's initial version.
+  const remainingPlanPaths = new Set(
+    (await readVersionPlans()).map((plan) => plan.relativePath),
+  );
+  const unconsumedPlanPaths = plans
+    .map((plan) => plan.relativePath)
+    .filter((path) => remainingPlanPaths.has(path));
+  if (unconsumedPlanPaths.length > 0) {
+    throw new Error(
+      `Release versioning completed without consuming these version plans: ${unconsumedPlanPaths.join(', ')}`,
+    );
+  }
+
   // Build package info from Nx version data
   const projectPackages = Object.entries(projectsVersionData).map(
     ([name, data]) => ({
