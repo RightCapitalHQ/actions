@@ -21,16 +21,16 @@
     "typecheck": "nx run-many -t typecheck"
   },
   "devDependencies": {
-    "@nx/js": "22.7.8",
-    "@rightcapital/eslint-config": "65.0.1",
+    "@nx/js": "23.1.1",
+    "@rightcapital/eslint-config": "69.0.0",
     "@rightcapital/prettier-config": "8.0.5",
     "@rslib/core": "0.23.2",
     "@types/node": "24.13.3",
     "eslint": "10.8.1",
-    "execa": "9.6.1",
-    "nx": "22.7.8",
+    "execa": "10.0.1",
+    "nx": "23.1.1",
     "prettier": "3.9.6",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   },
   "packageManager": "pnpm@11.21.0"
 }
