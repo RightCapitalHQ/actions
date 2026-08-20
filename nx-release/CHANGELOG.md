@@ -1,3 +1,10 @@
+## 0.6.1 (2026-08-20)
+
+### 🩹 Fixes
+
+- fix(deps): update dependency execa to v10 ([420cbc0](https://github.com/RightCapitalHQ/actions/commit/420cbc0))
+- fix(deps): update dependency @actions/github to v9 ([a943022](https://github.com/RightCapitalHQ/actions/commit/a943022))
+
 ## 0.6.0 (2026-05-29)
 
 ### 🚀 Features

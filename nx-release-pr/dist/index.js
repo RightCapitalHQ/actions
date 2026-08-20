@@ -610,321 +610,6 @@ var __webpack_modules__ = {
             }
         }
     },
-    "../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js" (module, __unused_rspack_exports, __webpack_require__) {
-        "use strict";
-        const cp = __webpack_require__("child_process");
-        const parse = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js");
-        const enoent = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js");
-        function spawn(command, args, options) {
-            const parsed = parse(command, args, options);
-            const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
-            enoent.hookChildProcess(spawned, parsed);
-            return spawned;
-        }
-        function spawnSync(command, args, options) {
-            const parsed = parse(command, args, options);
-            const result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
-            result.error = result.error || enoent.verifyENOENTSync(result.status, parsed);
-            return result;
-        }
-        module.exports = spawn;
-        module.exports.spawn = spawn;
-        module.exports.sync = spawnSync;
-        module.exports._parse = parse;
-        module.exports._enoent = enoent;
-    },
-    "../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js" (module) {
-        "use strict";
-        const isWin = 'win32' === process.platform;
-        function notFoundError(original, syscall) {
-            return Object.assign(new Error(`${syscall} ${original.command} ENOENT`), {
-                code: 'ENOENT',
-                errno: 'ENOENT',
-                syscall: `${syscall} ${original.command}`,
-                path: original.command,
-                spawnargs: original.args
-            });
-        }
-        function hookChildProcess(cp, parsed) {
-            if (!isWin) return;
-            const originalEmit = cp.emit;
-            cp.emit = function(name, arg1) {
-                if ('exit' === name) {
-                    const err = verifyENOENT(arg1, parsed);
-                    if (err) return originalEmit.call(cp, 'error', err);
-                }
-                return originalEmit.apply(cp, arguments);
-            };
-        }
-        function verifyENOENT(status, parsed) {
-            if (isWin && 1 === status && !parsed.file) return notFoundError(parsed.original, 'spawn');
-            return null;
-        }
-        function verifyENOENTSync(status, parsed) {
-            if (isWin && 1 === status && !parsed.file) return notFoundError(parsed.original, 'spawnSync');
-            return null;
-        }
-        module.exports = {
-            hookChildProcess,
-            verifyENOENT,
-            verifyENOENTSync,
-            notFoundError
-        };
-    },
-    "../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js" (module, __unused_rspack_exports, __webpack_require__) {
-        "use strict";
-        const path = __webpack_require__("path");
-        const resolveCommand = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js");
-        const escape = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js");
-        const readShebang = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js");
-        const isWin = 'win32' === process.platform;
-        const isExecutableRegExp = /\.(?:com|exe)$/i;
-        const isCmdShimRegExp = /node_modules[\\/].bin[\\/][^\\/]+\.cmd$/i;
-        function detectShebang(parsed) {
-            parsed.file = resolveCommand(parsed);
-            const shebang = parsed.file && readShebang(parsed.file);
-            if (shebang) {
-                parsed.args.unshift(parsed.file);
-                parsed.command = shebang;
-                return resolveCommand(parsed);
-            }
-            return parsed.file;
-        }
-        function parseNonShell(parsed) {
-            if (!isWin) return parsed;
-            const commandFile = detectShebang(parsed);
-            const needsShell = !isExecutableRegExp.test(commandFile);
-            if (parsed.options.forceShell || needsShell) {
-                const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-                parsed.command = path.normalize(parsed.command);
-                parsed.command = escape.command(parsed.command);
-                parsed.args = parsed.args.map((arg)=>escape.argument(arg, needsDoubleEscapeMetaChars));
-                const shellCommand = [
-                    parsed.command
-                ].concat(parsed.args).join(' ');
-                parsed.args = [
-                    '/d',
-                    '/s',
-                    '/c',
-                    `"${shellCommand}"`
-                ];
-                parsed.command = process.env.comspec || 'cmd.exe';
-                parsed.options.windowsVerbatimArguments = true;
-            }
-            return parsed;
-        }
-        function parse(command, args, options) {
-            if (args && !Array.isArray(args)) {
-                options = args;
-                args = null;
-            }
-            args = args ? args.slice(0) : [];
-            options = Object.assign({}, options);
-            const parsed = {
-                command,
-                args,
-                options,
-                file: void 0,
-                original: {
-                    command,
-                    args
-                }
-            };
-            return options.shell ? parsed : parseNonShell(parsed);
-        }
-        module.exports = parse;
-    },
-    "../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js" (module) {
-        "use strict";
-        const metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
-        function escapeCommand(arg) {
-            arg = arg.replace(metaCharsRegExp, '^$1');
-            return arg;
-        }
-        function escapeArgument(arg, doubleEscapeMetaChars) {
-            arg = `${arg}`;
-            arg = arg.replace(/(?=(\\+?)?)\1"/g, '$1$1\\"');
-            arg = arg.replace(/(?=(\\+?)?)\1$/, '$1$1');
-            arg = `"${arg}"`;
-            arg = arg.replace(metaCharsRegExp, '^$1');
-            if (doubleEscapeMetaChars) arg = arg.replace(metaCharsRegExp, '^$1');
-            return arg;
-        }
-        module.exports.command = escapeCommand;
-        module.exports.argument = escapeArgument;
-    },
-    "../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js" (module, __unused_rspack_exports, __webpack_require__) {
-        "use strict";
-        const fs = __webpack_require__("fs");
-        const shebangCommand = __webpack_require__("../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js");
-        function readShebang(command) {
-            const size = 150;
-            const buffer = Buffer.alloc(size);
-            let fd;
-            try {
-                fd = fs.openSync(command, 'r');
-                fs.readSync(fd, buffer, 0, size, 0);
-                fs.closeSync(fd);
-            } catch (e) {}
-            return shebangCommand(buffer.toString());
-        }
-        module.exports = readShebang;
-    },
-    "../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js" (module, __unused_rspack_exports, __webpack_require__) {
-        "use strict";
-        const path = __webpack_require__("path");
-        const which = __webpack_require__("../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js");
-        const getPathKey = __webpack_require__("../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js");
-        function resolveCommandAttempt(parsed, withoutPathExt) {
-            const env = parsed.options.env || process.env;
-            const cwd = process.cwd();
-            const hasCustomCwd = null != parsed.options.cwd;
-            const shouldSwitchCwd = hasCustomCwd && void 0 !== process.chdir && !process.chdir.disabled;
-            if (shouldSwitchCwd) try {
-                process.chdir(parsed.options.cwd);
-            } catch (err) {}
-            let resolved;
-            try {
-                resolved = which.sync(parsed.command, {
-                    path: env[getPathKey({
-                        env
-                    })],
-                    pathExt: withoutPathExt ? path.delimiter : void 0
-                });
-            } catch (e) {} finally{
-                if (shouldSwitchCwd) process.chdir(cwd);
-            }
-            if (resolved) resolved = path.resolve(hasCustomCwd ? parsed.options.cwd : '', resolved);
-            return resolved;
-        }
-        function resolveCommand(parsed) {
-            return resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, true);
-        }
-        module.exports = resolveCommand;
-    },
-    "../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js" (module, __unused_rspack_exports, __webpack_require__) {
-        __webpack_require__("fs");
-        var core;
-        core = 'win32' === process.platform || global.TESTING_WINDOWS ? __webpack_require__("../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js") : __webpack_require__("../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js");
-        module.exports = isexe;
-        isexe.sync = sync;
-        function isexe(path, options, cb) {
-            if ('function' == typeof options) {
-                cb = options;
-                options = {};
-            }
-            if (!cb) {
-                if ('function' != typeof Promise) throw new TypeError('callback not provided');
-                return new Promise(function(resolve, reject) {
-                    isexe(path, options || {}, function(er, is) {
-                        if (er) reject(er);
-                        else resolve(is);
-                    });
-                });
-            }
-            core(path, options || {}, function(er, is) {
-                if (er) {
-                    if ('EACCES' === er.code || options && options.ignoreErrors) {
-                        er = null;
-                        is = false;
-                    }
-                }
-                cb(er, is);
-            });
-        }
-        function sync(path, options) {
-            try {
-                return core.sync(path, options || {});
-            } catch (er) {
-                if (options && options.ignoreErrors || 'EACCES' === er.code) return false;
-                throw er;
-            }
-        }
-    },
-    "../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js" (module, __unused_rspack_exports, __webpack_require__) {
-        module.exports = isexe;
-        isexe.sync = sync;
-        var fs = __webpack_require__("fs");
-        function isexe(path, options, cb) {
-            fs.stat(path, function(er, stat) {
-                cb(er, er ? false : checkStat(stat, options));
-            });
-        }
-        function sync(path, options) {
-            return checkStat(fs.statSync(path), options);
-        }
-        function checkStat(stat, options) {
-            return stat.isFile() && checkMode(stat, options);
-        }
-        function checkMode(stat, options) {
-            var mod = stat.mode;
-            var uid = stat.uid;
-            var gid = stat.gid;
-            var myUid = void 0 !== options.uid ? options.uid : process.getuid && process.getuid();
-            var myGid = void 0 !== options.gid ? options.gid : process.getgid && process.getgid();
-            var u = parseInt('100', 8);
-            var g = parseInt('010', 8);
-            var o = parseInt('001', 8);
-            var ug = u | g;
-            var ret = mod & o || mod & g && gid === myGid || mod & u && uid === myUid || mod & ug && 0 === myUid;
-            return ret;
-        }
-    },
-    "../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js" (module, __unused_rspack_exports, __webpack_require__) {
-        module.exports = isexe;
-        isexe.sync = sync;
-        var fs = __webpack_require__("fs");
-        function checkPathExt(path, options) {
-            var pathext = void 0 !== options.pathExt ? options.pathExt : process.env.PATHEXT;
-            if (!pathext) return true;
-            pathext = pathext.split(';');
-            if (-1 !== pathext.indexOf('')) return true;
-            for(var i = 0; i < pathext.length; i++){
-                var p = pathext[i].toLowerCase();
-                if (p && path.substr(-p.length).toLowerCase() === p) return true;
-            }
-            return false;
-        }
-        function checkStat(stat, path, options) {
-            if (!stat.isSymbolicLink() && !stat.isFile()) return false;
-            return checkPathExt(path, options);
-        }
-        function isexe(path, options, cb) {
-            fs.stat(path, function(er, stat) {
-                cb(er, er ? false : checkStat(stat, path, options));
-            });
-        }
-        function sync(path, options) {
-            return checkStat(fs.statSync(path), path, options);
-        }
-    },
-    "../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js" (module) {
-        "use strict";
-        const pathKey = (options = {})=>{
-            const environment = options.env || process.env;
-            const platform = options.platform || process.platform;
-            if ('win32' !== platform) return 'PATH';
-            return Object.keys(environment).reverse().find((key)=>'PATH' === key.toUpperCase()) || 'Path';
-        };
-        module.exports = pathKey;
-        module.exports["default"] = pathKey;
-    },
-    "../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js" (module, __unused_rspack_exports, __webpack_require__) {
-        "use strict";
-        const shebangRegex = __webpack_require__("../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js");
-        module.exports = (string = '')=>{
-            const match = string.match(shebangRegex);
-            if (!match) return null;
-            const [path, argument] = match[0].replace(/#! ?/, '').split(' ');
-            const binary = path.split('/').pop();
-            if ('env' === binary) return argument;
-            return argument ? `${binary} ${argument}` : binary;
-        };
-    },
-    "../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js" (module) {
-        "use strict";
-        module.exports = /^#!(.*)/;
-    },
     "../node_modules/.pnpm/tunnel@0.0.6/node_modules/tunnel/index.js" (module, __unused_rspack_exports, __webpack_require__) {
         module.exports = __webpack_require__("../node_modules/.pnpm/tunnel@0.0.6/node_modules/tunnel/lib/tunnel.js");
     },
@@ -13005,7 +12690,7 @@ ${pendingInterceptorsFormatter.format(pending)}
             let x = Number(V);
             if (0 === x) x = 0;
             if (opts?.enforceRange === true) {
-                if (Number.isNaN(x) || x === 1 / 0 || x === -1 / 0) throw webidl.errors.exception({
+                if (Number.isNaN(x) || 1 / 0 === x || -1 / 0 === x) throw webidl.errors.exception({
                     header: 'Integer conversion',
                     message: `Could not convert ${webidl.util.Stringify(V)} to an integer.`
                 });
@@ -13021,7 +12706,7 @@ ${pendingInterceptorsFormatter.format(pending)}
                 x = Math.floor(x) % 2 === 0 ? Math.floor(x) : Math.ceil(x);
                 return x;
             }
-            if (Number.isNaN(x) || 0 === x && Object.is(0, x) || x === 1 / 0 || x === -1 / 0) return 0;
+            if (Number.isNaN(x) || 0 === x && Object.is(0, x) || 1 / 0 === x || -1 / 0 === x) return 0;
             x = webidl.util.IntegerPart(x);
             x %= Math.pow(2, bitLength);
             if ('signed' === signedness && x >= Math.pow(2, bitLength) - 1) return x - Math.pow(2, bitLength);
@@ -15273,108 +14958,13 @@ ${pendingInterceptorsFormatter.format(pending)}
             WebSocket
         };
     },
-    "../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js" (module, __unused_rspack_exports, __webpack_require__) {
-        const isWindows = 'win32' === process.platform || 'cygwin' === process.env.OSTYPE || 'msys' === process.env.OSTYPE;
-        const path = __webpack_require__("path");
-        const COLON = isWindows ? ';' : ':';
-        const isexe = __webpack_require__("../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js");
-        const getNotFoundError = (cmd)=>Object.assign(new Error(`not found: ${cmd}`), {
-                code: 'ENOENT'
-            });
-        const getPathInfo = (cmd, opt)=>{
-            const colon = opt.colon || COLON;
-            const pathEnv = cmd.match(/\//) || isWindows && cmd.match(/\\/) ? [
-                ''
-            ] : [
-                ...isWindows ? [
-                    process.cwd()
-                ] : [],
-                ...(opt.path || process.env.PATH || '').split(colon)
-            ];
-            const pathExtExe = isWindows ? opt.pathExt || process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM' : '';
-            const pathExt = isWindows ? pathExtExe.split(colon) : [
-                ''
-            ];
-            if (isWindows) {
-                if (-1 !== cmd.indexOf('.') && '' !== pathExt[0]) pathExt.unshift('');
-            }
-            return {
-                pathEnv,
-                pathExt,
-                pathExtExe
-            };
-        };
-        const which = (cmd, opt, cb)=>{
-            if ('function' == typeof opt) {
-                cb = opt;
-                opt = {};
-            }
-            if (!opt) opt = {};
-            const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
-            const found = [];
-            const step = (i)=>new Promise((resolve, reject)=>{
-                    if (i === pathEnv.length) return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
-                    const ppRaw = pathEnv[i];
-                    const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-                    const pCmd = path.join(pathPart, cmd);
-                    const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-                    resolve(subStep(p, i, 0));
-                });
-            const subStep = (p, i, ii)=>new Promise((resolve, reject)=>{
-                    if (ii === pathExt.length) return resolve(step(i + 1));
-                    const ext = pathExt[ii];
-                    isexe(p + ext, {
-                        pathExt: pathExtExe
-                    }, (er, is)=>{
-                        if (!er && is) if (!opt.all) return resolve(p + ext);
-                        else found.push(p + ext);
-                        return resolve(subStep(p, i, ii + 1));
-                    });
-                });
-            return cb ? step(0).then((res)=>cb(null, res), cb) : step(0);
-        };
-        const whichSync = (cmd, opt)=>{
-            opt = opt || {};
-            const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
-            const found = [];
-            for(let i = 0; i < pathEnv.length; i++){
-                const ppRaw = pathEnv[i];
-                const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-                const pCmd = path.join(pathPart, cmd);
-                const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-                for(let j = 0; j < pathExt.length; j++){
-                    const cur = p + pathExt[j];
-                    try {
-                        const is = isexe.sync(cur, {
-                            pathExt: pathExtExe
-                        });
-                        if (is) if (!opt.all) return cur;
-                        else found.push(cur);
-                    } catch (ex) {}
-                }
-            }
-            if (opt.all && found.length) return found;
-            if (opt.nothrow) return null;
-            throw getNotFoundError(cmd);
-        };
-        module.exports = which;
-        which.sync = whichSync;
-    },
     assert (module) {
         "use strict";
         module.exports = require("assert");
     },
-    child_process (module) {
-        "use strict";
-        module.exports = require("child_process");
-    },
     events (module) {
         "use strict";
         module.exports = require("events");
-    },
-    fs (module) {
-        "use strict";
-        module.exports = require("fs");
     },
     http (module) {
         "use strict";
@@ -15467,10 +15057,6 @@ ${pendingInterceptorsFormatter.format(pending)}
     "node:zlib" (module) {
         "use strict";
         module.exports = require("node:zlib");
-    },
-    path (module) {
-        "use strict";
-        module.exports = require("path");
     },
     string_decoder (module) {
         "use strict";
@@ -15647,12 +15233,12 @@ var __webpack_exports__ = {};
         return utils_toCommandValue(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A').replace(/:/g, '%3A').replace(/,/g, '%2C');
     }
     const external_crypto_namespaceObject = require("crypto");
-    var external_fs_ = __webpack_require__("fs");
+    const external_fs_namespaceObject = require("fs");
     function file_command_issueFileCommand(command, message) {
         const filePath = process.env[`GITHUB_${command}`];
         if (!filePath) throw new Error(`Unable to find environment variable for file command ${command}`);
-        if (!external_fs_.existsSync(filePath)) throw new Error(`Missing file at path: ${filePath}`);
-        external_fs_.appendFileSync(filePath, `${utils_toCommandValue(message)}${external_os_namespaceObject.EOL}`, {
+        if (!external_fs_namespaceObject.existsSync(filePath)) throw new Error(`Missing file at path: ${filePath}`);
+        external_fs_namespaceObject.appendFileSync(filePath, `${utils_toCommandValue(message)}${external_os_namespaceObject.EOL}`, {
             encoding: 'utf8'
         });
     }
@@ -15663,7 +15249,7 @@ var __webpack_exports__ = {};
         if (convertedValue.includes(delimiter)) throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
         return `${key}<<${delimiter}${external_os_namespaceObject.EOL}${convertedValue}${external_os_namespaceObject.EOL}${delimiter}`;
     }
-    __webpack_require__("path");
+    require("path");
     __webpack_require__("http");
     __webpack_require__("https");
     URL;
@@ -15737,7 +15323,7 @@ var __webpack_exports__ = {};
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    const { access, appendFile, writeFile } = external_fs_.promises;
+    const { access, appendFile, writeFile } = external_fs_namespaceObject.promises;
     const SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
     class Summary {
         constructor(){
@@ -15749,7 +15335,7 @@ var __webpack_exports__ = {};
                 const pathFromEnv = process.env[SUMMARY_ENV_VAR];
                 if (!pathFromEnv) throw new Error(`Unable to find environment variable for $${SUMMARY_ENV_VAR}. Check if your runtime environment supports job summaries.`);
                 try {
-                    yield access(pathFromEnv, external_fs_.constants.R_OK | external_fs_.constants.W_OK);
+                    yield access(pathFromEnv, external_fs_namespaceObject.constants.R_OK | external_fs_namespaceObject.constants.W_OK);
                 } catch (_a) {
                     throw new Error(`Unable to access summary file: '${pathFromEnv}'. Check if the file has correct read/write permissions.`);
                 }
@@ -15883,11 +15469,11 @@ var __webpack_exports__ = {};
     new Summary();
     __webpack_require__("string_decoder");
     var external_events_ = __webpack_require__("events");
-    __webpack_require__("child_process");
+    require("child_process");
     __webpack_require__("assert");
-    const { chmod, copyFile, lstat, mkdir, open: io_util_open, readdir, rename, rm, rmdir, stat, symlink, unlink } = external_fs_.promises;
+    const { chmod, copyFile, lstat, mkdir, open: io_util_open, readdir, rename, rm, rmdir, stat, symlink, unlink } = external_fs_namespaceObject.promises;
     process.platform;
-    external_fs_.constants.O_RDONLY;
+    external_fs_namespaceObject.constants.O_RDONLY;
     require("timers");
     process.platform;
     external_events_.EventEmitter;
@@ -15930,7 +15516,7 @@ var __webpack_exports__ = {};
         constructor(){
             var _a, _b, _c;
             this.payload = {};
-            if (process.env.GITHUB_EVENT_PATH) if ((0, external_fs_.existsSync)(process.env.GITHUB_EVENT_PATH)) this.payload = JSON.parse((0, external_fs_.readFileSync)(process.env.GITHUB_EVENT_PATH, {
+            if (process.env.GITHUB_EVENT_PATH) if ((0, external_fs_namespaceObject.existsSync)(process.env.GITHUB_EVENT_PATH)) this.payload = JSON.parse((0, external_fs_namespaceObject.readFileSync)(process.env.GITHUB_EVENT_PATH, {
                 encoding: 'utf8'
             }));
             else {
@@ -20394,7 +19980,7 @@ var __webpack_exports__ = {};
         response.data.total_commits = totalCommits;
         return response;
     }
-    function iterator(octokit, route, parameters) {
+    function dist_bundle_iterator(octokit, route, parameters) {
         const options = "function" == typeof route ? route.endpoint(parameters) : octokit.request.endpoint(route, parameters);
         const requestMethod = "function" == typeof route ? route : octokit.request;
         const method = options.method;
@@ -20447,7 +20033,7 @@ var __webpack_exports__ = {};
             mapFn = parameters;
             parameters = void 0;
         }
-        return gather(octokit, [], iterator(octokit, route, parameters)[Symbol.asyncIterator](), mapFn);
+        return gather(octokit, [], dist_bundle_iterator(octokit, route, parameters)[Symbol.asyncIterator](), mapFn);
     }
     function gather(octokit, results, iterator2, mapFn) {
         return iterator2.next().then((result)=>{
@@ -20462,12 +20048,12 @@ var __webpack_exports__ = {};
         });
     }
     Object.assign(paginate, {
-        iterator
+        iterator: dist_bundle_iterator
     });
     function paginateRest(octokit) {
         return {
             paginate: Object.assign(paginate.bind(null, octokit), {
-                iterator: iterator.bind(null, octokit)
+                iterator: dist_bundle_iterator.bind(null, octokit)
             })
         };
     }
@@ -20527,7 +20113,10 @@ var __webpack_exports__ = {};
         return [
             filePath,
             normalizedArguments,
-            options
+            {
+                __proto__: null,
+                ...options
+            }
         ];
     };
     const external_node_child_process_namespaceObject = require("node:child_process");
@@ -20610,7 +20199,7 @@ var __webpack_exports__ = {};
         };
         const nextTokens = [];
         let templateStart = 0;
-        const leadingWhitespaces = DELIMITERS.has(rawTemplate[0]);
+        const isLeadingWhitespaces = DELIMITERS.has(rawTemplate[0]);
         for(let templateIndex = 0, rawIndex = 0; templateIndex < template.length; templateIndex += 1, rawIndex += 1){
             const rawCharacter = rawTemplate[rawIndex];
             if (DELIMITERS.has(rawCharacter)) {
@@ -20625,12 +20214,12 @@ var __webpack_exports__ = {};
                 else rawIndex += ESCAPE_LENGTH[nextRawCharacter] ?? 1;
             }
         }
-        const trailingWhitespaces = templateStart === template.length;
-        if (!trailingWhitespaces) nextTokens.push(template.slice(templateStart));
+        const isTrailingWhitespaces = templateStart === template.length;
+        if (!isTrailingWhitespaces) nextTokens.push(template.slice(templateStart));
         return {
             nextTokens,
-            leadingWhitespaces,
-            trailingWhitespaces
+            leadingWhitespaces: isLeadingWhitespaces,
+            trailingWhitespaces: isTrailingWhitespaces
         };
     };
     const DELIMITERS = new Set([
@@ -20687,16 +20276,17 @@ var __webpack_exports__ = {};
         return optionsCopy;
     };
     const normalizeFdSpecificOption = (options, optionName)=>{
+        const stdioLength = getStdioLength(options);
         const optionBaseArray = Array.from({
-            length: getStdioLength(options) + 1
+            length: stdioLength + 1
         });
-        const optionArray = normalizeFdSpecificValue(options[optionName], optionBaseArray, optionName);
+        const optionArray = normalizeFdSpecificValue(options[optionName], optionBaseArray, optionName, stdioLength);
         return addDefaultValue(optionArray, optionName);
     };
     const getStdioLength = ({ stdio })=>Array.isArray(stdio) ? Math.max(stdio.length, STANDARD_STREAMS_ALIASES.length) : STANDARD_STREAMS_ALIASES.length;
-    const normalizeFdSpecificValue = (optionValue, optionArray, optionName)=>is_plain_obj_isPlainObject(optionValue) ? normalizeOptionObject(optionValue, optionArray, optionName) : optionArray.fill(optionValue);
-    const normalizeOptionObject = (optionValue, optionArray, optionName)=>{
-        for (const fdName of Object.keys(optionValue).sort(compareFdName))for (const fdNumber of parseFdName(fdName, optionName, optionArray))optionArray[fdNumber] = optionValue[fdName];
+    const normalizeFdSpecificValue = (optionValue, optionArray, optionName, stdioLength)=>is_plain_obj_isPlainObject(optionValue) ? normalizeOptionObject(optionValue, optionArray, optionName, stdioLength) : optionArray.fill(optionValue);
+    const normalizeOptionObject = (optionValue, optionArray, optionName, stdioLength)=>{
+        for (const fdName of Object.keys(optionValue).sort(compareFdName))for (const fdNumber of parseFdName(fdName, optionName, stdioLength))optionArray[fdNumber] = optionValue[fdName];
         return optionArray;
     };
     const compareFdName = (fdNameA, fdNameB)=>getFdNameOrder(fdNameA) < getFdNameOrder(fdNameB) ? 1 : -1;
@@ -20704,14 +20294,14 @@ var __webpack_exports__ = {};
         if ('stdout' === fdName || 'stderr' === fdName) return 0;
         return 'all' === fdName ? 2 : 1;
     };
-    const parseFdName = (fdName, optionName, optionArray)=>{
+    const parseFdName = (fdName, optionName, stdioLength)=>{
         if ('ipc' === fdName) return [
-            optionArray.length - 1
+            stdioLength
         ];
         const fdNumber = parseFd(fdName);
         if (void 0 === fdNumber || 0 === fdNumber) throw new TypeError(`"${optionName}.${fdName}" is invalid.
 It must be "${optionName}.stdout", "${optionName}.stderr", "${optionName}.all", "${optionName}.ipc", or "${optionName}.fd3", "${optionName}.fd4" (and so on).`);
-        if (fdNumber >= optionArray.length) throw new TypeError(`"${optionName}.${fdName}" is invalid: that file descriptor does not exist.
+        if ('all' !== fdNumber && fdNumber >= stdioLength) throw new TypeError(`"${optionName}.${fdName}" is invalid: that file descriptor does not exist.
 Please set the "stdio" option to ensure that file descriptor exists.`);
         return 'all' === fdNumber ? [
             1,
@@ -20724,9 +20314,9 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
         if ('all' === fdName) return fdName;
         if (STANDARD_STREAMS_ALIASES.includes(fdName)) return STANDARD_STREAMS_ALIASES.indexOf(fdName);
         const regexpResult = FD_REGEXP.exec(fdName);
-        if (null !== regexpResult) return Number(regexpResult[1]);
+        if (null !== regexpResult) return Number(regexpResult.groups.fdNumber);
     };
-    const FD_REGEXP = /^fd(\d+)$/;
+    const FD_REGEXP = /^fd(?<fdNumber>\d+)$/;
     const addDefaultValue = (optionArray, optionName)=>optionArray.map((optionValue)=>void 0 === optionValue ? DEFAULT_OPTIONS[optionName] : optionValue);
     const verboseDefault = (0, external_node_util_.debuglog)('execa').enabled ? 'full' : 'none';
     const DEFAULT_OPTIONS = {
@@ -20803,7 +20393,7 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
         if (NO_ESCAPE_REGEXP.test(escapedArgument)) return escapedArgument;
         return 'win32' === external_node_process_namespaceObject.platform ? `"${escapedArgument.replaceAll('"', '""')}"` : `'${escapedArgument.replaceAll('\'', '\'\\\'\'')}'`;
     };
-    const NO_ESCAPE_REGEXP = /^[\w./-]+$/;
+    const NO_ESCAPE_REGEXP = /^[\w\-./]+$/;
     function isUnicodeSupported() {
         const { env } = external_node_process_namespaceObject;
         const { TERM, TERM_PROGRAM } = env;
@@ -21207,7 +20797,10 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
         const finalLines = applyVerboseOnLines(printedLines, verboseInfo, fdNumber);
         if ('' !== finalLines) console.warn(finalLines.slice(0, -1));
     };
-    const getVerboseObject = ({ type, result, verboseInfo: { escapedCommand, commandId, rawOptions: { piped = false, ...options } } })=>({
+    const getVerboseObject = ({ type, result, verboseInfo })=>{
+        const { escapedCommand, commandId, rawOptions } = verboseInfo;
+        const { piped = false, ...options } = rawOptions;
+        return {
             type,
             escapedCommand,
             commandId: `${commandId}`,
@@ -21215,7 +20808,8 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
             piped,
             result,
             options
-        });
+        };
+    };
     const getPrintedLines = (verboseMessage, verboseObject)=>verboseMessage.split('\n').map((message)=>getPrintedLine({
                 ...verboseObject,
                 message
@@ -21230,7 +20824,7 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
     const serializeVerboseMessage = (message)=>{
         const messageString = 'string' == typeof message ? message : (0, external_node_util_.inspect)(message);
         const escapedMessage = escapeLines(messageString);
-        return escapedMessage.replaceAll('\t', ' '.repeat(TAB_SIZE));
+        return escapedMessage.replaceAll('\t', ()=>' '.repeat(TAB_SIZE));
     };
     const TAB_SIZE = 2;
     const logCommand = (escapedCommand, verboseInfo)=>{
@@ -21283,7 +20877,6 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
         };
     };
     const external_node_path_namespaceObject = require("node:path");
-    var cross_spawn = __webpack_require__("../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js");
     function pathKey(options = {}) {
         const { env = process.env, platform = process.platform } = options;
         if ('win32' !== platform) return 'PATH';
@@ -21349,17 +20942,19 @@ Please set the "stdio" option to ensure that file descriptor exists.`);
     class DiscardedError extends Error {
     }
     const setErrorName = (ErrorClass, value)=>{
-        Object.defineProperty(ErrorClass.prototype, 'name', {
-            value,
-            writable: true,
-            enumerable: false,
-            configurable: true
-        });
-        Object.defineProperty(ErrorClass.prototype, execaErrorSymbol, {
-            value: true,
-            writable: false,
-            enumerable: false,
-            configurable: false
+        Object.defineProperties(ErrorClass.prototype, {
+            name: {
+                value,
+                writable: true,
+                enumerable: false,
+                configurable: true
+            },
+            [execaErrorSymbol]: {
+                value: true,
+                writable: false,
+                enumerable: false,
+                configurable: false
+            }
         });
     };
     const isExecaError = (error)=>isErrorInstance(error) && execaErrorSymbol in error;
@@ -21825,13 +21420,13 @@ Available signal numbers: ${getAvailableSignalIntegers()}.`;
     const validateCancelSignal = ({ cancelSignal })=>{
         if (void 0 !== cancelSignal && '[object AbortSignal]' !== Object.prototype.toString.call(cancelSignal)) throw new Error(`The \`cancelSignal\` option must be an AbortSignal: ${String(cancelSignal)}`);
     };
-    const throwOnCancel = ({ subprocess, cancelSignal, gracefulCancel, context, controller })=>void 0 === cancelSignal || gracefulCancel ? [] : [
-            terminateOnCancel(subprocess, cancelSignal, context, controller)
+    const throwOnCancel = ({ kill, cancelSignal, gracefulCancel, context, controller })=>void 0 === cancelSignal || gracefulCancel ? [] : [
+            terminateOnCancel(kill, cancelSignal, context, controller)
         ];
-    const terminateOnCancel = async (subprocess, cancelSignal, context, { signal })=>{
+    const terminateOnCancel = async (kill, cancelSignal, context, { signal })=>{
         await onAbortedSignal(cancelSignal, signal);
         context.terminationReason ??= 'cancel';
-        subprocess.kill();
+        kill();
         throw cancelSignal.reason;
     };
     const validateIpcMethod = ({ methodName, isSubprocess, ipc, isConnected })=>{
@@ -21905,83 +21500,9 @@ const [receivedMessage] = await Promise.all([
         });
         return Object.assign(promise, methods);
     };
-    const getToStream = (destination, to = 'stdin')=>{
-        const isWritable = true;
-        const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(destination);
-        const fdNumber = getFdNumber(fileDescriptors, to, isWritable);
-        const destinationStream = destination.stdio[fdNumber];
-        if (null === destinationStream) throw new TypeError(getInvalidStdioOptionMessage(fdNumber, to, options, isWritable));
-        return destinationStream;
-    };
-    const getFromStream = (source, from = 'stdout')=>{
-        const isWritable = false;
-        const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(source);
-        const fdNumber = getFdNumber(fileDescriptors, from, isWritable);
-        const sourceStream = 'all' === fdNumber ? source.all : source.stdio[fdNumber];
-        if (null == sourceStream) throw new TypeError(getInvalidStdioOptionMessage(fdNumber, from, options, isWritable));
-        return sourceStream;
-    };
-    const SUBPROCESS_OPTIONS = new WeakMap();
-    const getFdNumber = (fileDescriptors, fdName, isWritable)=>{
-        const fdNumber = parseFdNumber(fdName, isWritable);
-        validateFdNumber(fdNumber, fdName, isWritable, fileDescriptors);
-        return fdNumber;
-    };
-    const parseFdNumber = (fdName, isWritable)=>{
-        const fdNumber = parseFd(fdName);
-        if (void 0 !== fdNumber) return fdNumber;
-        const { validOptions, defaultValue } = isWritable ? {
-            validOptions: '"stdin"',
-            defaultValue: 'stdin'
-        } : {
-            validOptions: '"stdout", "stderr", "all"',
-            defaultValue: 'stdout'
-        };
-        throw new TypeError(`"${getOptionName(isWritable)}" must not be "${fdName}".
-It must be ${validOptions} or "fd3", "fd4" (and so on).
-It is optional and defaults to "${defaultValue}".`);
-    };
-    const validateFdNumber = (fdNumber, fdName, isWritable, fileDescriptors)=>{
-        const fileDescriptor = fileDescriptors[getUsedDescriptor(fdNumber)];
-        if (void 0 === fileDescriptor) throw new TypeError(`"${getOptionName(isWritable)}" must not be ${fdName}. That file descriptor does not exist.
-Please set the "stdio" option to ensure that file descriptor exists.`);
-        if ('input' === fileDescriptor.direction && !isWritable) throw new TypeError(`"${getOptionName(isWritable)}" must not be ${fdName}. It must be a readable stream, not writable.`);
-        if ('input' !== fileDescriptor.direction && isWritable) throw new TypeError(`"${getOptionName(isWritable)}" must not be ${fdName}. It must be a writable stream, not readable.`);
-    };
-    const getInvalidStdioOptionMessage = (fdNumber, fdName, options, isWritable)=>{
-        if ('all' === fdNumber && !options.all) return 'The "all" option must be true to use "from: \'all\'".';
-        const { optionName, optionValue } = getInvalidStdioOption(fdNumber, options);
-        return `The "${optionName}: ${serializeOptionValue(optionValue)}" option is incompatible with using "${getOptionName(isWritable)}: ${serializeOptionValue(fdName)}".
-Please set this option with "pipe" instead.`;
-    };
-    const getInvalidStdioOption = (fdNumber, { stdin, stdout, stderr, stdio })=>{
-        const usedDescriptor = getUsedDescriptor(fdNumber);
-        if (0 === usedDescriptor && void 0 !== stdin) return {
-            optionName: 'stdin',
-            optionValue: stdin
-        };
-        if (1 === usedDescriptor && void 0 !== stdout) return {
-            optionName: 'stdout',
-            optionValue: stdout
-        };
-        if (2 === usedDescriptor && void 0 !== stderr) return {
-            optionName: 'stderr',
-            optionValue: stderr
-        };
-        return {
-            optionName: `stdio[${usedDescriptor}]`,
-            optionValue: stdio[usedDescriptor]
-        };
-    };
-    const getUsedDescriptor = (fdNumber)=>'all' === fdNumber ? 1 : fdNumber;
-    const getOptionName = (isWritable)=>isWritable ? 'to' : 'from';
-    const serializeOptionValue = (value)=>{
-        if ('string' == typeof value) return `'${value}'`;
-        return 'number' == typeof value ? `${value}` : 'Stream';
-    };
     const incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal)=>{
         const maxListeners = eventEmitter.getMaxListeners();
-        if (0 === maxListeners || maxListeners === 1 / 0) return;
+        if (0 === maxListeners || 1 / 0 === maxListeners) return;
         eventEmitter.setMaxListeners(maxListeners + maxListenersIncrement);
         (0, external_node_events_.addAbortListener)(signal, ()=>{
             eventEmitter.setMaxListeners(eventEmitter.getMaxListeners() - maxListenersIncrement);
@@ -22000,16 +21521,14 @@ Please set this option with "pipe" instead.`;
         channel.unrefCounted();
     };
     const undoAddedReferences = (channel, isSubprocess)=>{
-        if (isSubprocess) {
-            removeReferenceCount(channel);
-            removeReferenceCount(channel);
-        }
+        if (!isSubprocess) return;
+        removeReferenceCount(channel);
+        removeReferenceCount(channel);
     };
     const redoAddedReferences = (channel, isSubprocess)=>{
-        if (isSubprocess) {
-            addReferenceCount(channel);
-            addReferenceCount(channel);
-        }
+        if (!isSubprocess) return;
+        addReferenceCount(channel);
+        addReferenceCount(channel);
     };
     const onMessage = async ({ anyProcess, channel, isSubprocess, ipcEmitter }, wrappedMessage)=>{
         if (handleStrictResponse(wrappedMessage) || handleAbort(wrappedMessage)) return;
@@ -22075,7 +21594,7 @@ Please set this option with "pipe" instead.`;
     };
     const forward_isConnected = (anyProcess)=>{
         const ipcEmitter = IPC_EMITTERS.get(anyProcess);
-        return void 0 === ipcEmitter ? null !== anyProcess.channel : ipcEmitter.connected;
+        return void 0 === ipcEmitter ? void 0 !== anyProcess.channel && null !== anyProcess.channel : ipcEmitter.connected;
     };
     const handleSendStrict = ({ anyProcess, channel, isSubprocess, message, strict })=>{
         if (!strict) return message;
@@ -22181,8 +21700,13 @@ Please set this option with "pipe" instead.`;
         }
     };
     const OUTGOING_MESSAGES = new WeakMap();
+    const IPC_SUBPROCESS_OPTIONS = new WeakMap();
+    const setIpcSubprocessOptions = (subprocess, options)=>{
+        IPC_SUBPROCESS_OPTIONS.set(subprocess, options);
+    };
     const hasMessageListeners = (anyProcess, ipcEmitter)=>ipcEmitter.listenerCount('message') > getMinListenerCount(anyProcess);
-    const getMinListenerCount = (anyProcess)=>SUBPROCESS_OPTIONS.has(anyProcess) && !getFdSpecificValue(SUBPROCESS_OPTIONS.get(anyProcess).options.buffer, 'ipc') ? 1 : 0;
+    const getMinListenerCount = (anyProcess)=>void 0 === getOptions(anyProcess) || getFdSpecificValue(getOptions(anyProcess).buffer, 'ipc') ? 0 : 1;
+    const getOptions = (anyProcess)=>IPC_SUBPROCESS_OPTIONS.get(anyProcess);
     const sendMessage = ({ anyProcess, channel, isSubprocess, ipc }, message, { strict = false } = {})=>{
         const methodName = 'sendMessage';
         validateIpcMethod({
@@ -22277,14 +21801,14 @@ Please set this option with "pipe" instead.`;
         return cancelController.signal;
     };
     const startIpc = async ({ anyProcess, channel, isSubprocess, ipc })=>{
-        if (cancelListening) return;
-        cancelListening = true;
+        if (isCancelListening) return;
+        isCancelListening = true;
         if (!ipc) return void throwOnMissingParent();
         if (null === channel) return void abortOnDisconnect();
         getIpcEmitter(anyProcess, channel, isSubprocess);
         await promises_namespaceObject.scheduler["yield"]();
     };
-    let cancelListening = false;
+    let isCancelListening = false;
     const handleAbort = (wrappedMessage)=>{
         if (wrappedMessage?.type !== GRACEFUL_CANCEL_TYPE) return false;
         cancelController.abort(wrappedMessage.message);
@@ -22301,21 +21825,22 @@ Please set this option with "pipe" instead.`;
         if (!ipc) throw new Error('The `ipc` option cannot be false when setting the `gracefulCancel` option.');
         if ('json' === serialization) throw new Error('The `serialization` option cannot be \'json\' when setting the `gracefulCancel` option.');
     };
-    const throwOnGracefulCancel = ({ subprocess, cancelSignal, gracefulCancel, forceKillAfterDelay, context, controller })=>gracefulCancel ? [
+    const throwOnGracefulCancel = ({ subprocess, kill, cancelSignal, gracefulCancel, forceKillAfterDelay, context, controller })=>gracefulCancel ? [
             sendOnAbort({
                 subprocess,
+                kill,
                 cancelSignal,
                 forceKillAfterDelay,
                 context,
                 controller
             })
         ] : [];
-    const sendOnAbort = async ({ subprocess, cancelSignal, forceKillAfterDelay, context, controller: { signal } })=>{
+    const sendOnAbort = async ({ subprocess, kill, cancelSignal, forceKillAfterDelay, context, controller: { signal } })=>{
         await onAbortedSignal(cancelSignal, signal);
         const reason = getReason(cancelSignal);
         await sendAbort(subprocess, reason);
         killOnTimeout({
-            kill: subprocess.kill,
+            kill,
             forceKillAfterDelay,
             context,
             controllerSignal: signal
@@ -22337,15 +21862,15 @@ Please set this option with "pipe" instead.`;
     const validateTimeout = ({ timeout })=>{
         if (void 0 !== timeout && (!Number.isFinite(timeout) || timeout < 0)) throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
     };
-    const throwOnTimeout = (subprocess, timeout, context, controller)=>0 === timeout || void 0 === timeout ? [] : [
-            killAfterTimeout(subprocess, timeout, context, controller)
+    const throwOnTimeout = (kill, timeout, context, controller)=>0 === timeout || void 0 === timeout ? [] : [
+            killAfterTimeout(kill, timeout, context, controller)
         ];
-    const killAfterTimeout = async (subprocess, timeout, context, { signal })=>{
+    const killAfterTimeout = async (kill, timeout, context, { signal })=>{
         await (0, promises_namespaceObject.setTimeout)(timeout, void 0, {
             signal
         });
         context.terminationReason ??= 'timeout';
-        subprocess.kill();
+        kill();
         throw new DiscardedError();
     };
     const mapNode = ({ options })=>{
@@ -22362,6 +21887,8 @@ Please set this option with "pipe" instead.`;
         const normalizedNodePath = safeNormalizeFileUrl(nodePath, 'The "nodePath" option');
         const resolvedNodePath = external_node_path_namespaceObject.resolve(cwd, normalizedNodePath);
         const newOptions = {
+            __proto__: null,
+            shell: false,
             ...options,
             nodePath: resolvedNodePath,
             node: shouldHandleNode,
@@ -22381,6 +21908,7 @@ Please set this option with "pipe" instead.`;
                 ...commandArguments
             ],
             {
+                __proto__: null,
                 ipc: true,
                 ...newOptions,
                 shell: false
@@ -22415,9 +21943,14 @@ Please set this option with "pipe" instead.`;
         advanced: validateAdvancedInput,
         json: validateJsonInput
     };
-    const sendIpcInput = async (subprocess, ipcInput)=>{
+    const sendIpcInput = async (subprocess, ipcInput, ipc)=>{
         if (void 0 === ipcInput) return;
-        await subprocess.sendMessage(ipcInput);
+        await sendMessage({
+            anyProcess: subprocess,
+            channel: subprocess.channel,
+            isSubprocess: false,
+            ipc
+        }, ipcInput);
     };
     const validateEncoding = ({ encoding })=>{
         if (ENCODINGS.has(encoding)) return;
@@ -22442,10 +21975,7 @@ Please rename it to one of: ${correctEncodings}.`);
         'latin1',
         'ascii'
     ]);
-    const ENCODINGS = new Set([
-        ...TEXT_ENCODINGS,
-        ...BINARY_ENCODINGS
-    ]);
+    const ENCODINGS = TEXT_ENCODINGS.union(BINARY_ENCODINGS);
     const getCorrectEncoding = (encoding)=>{
         if (null === encoding) return 'buffer';
         if ('string' != typeof encoding) return;
@@ -22462,6 +21992,197 @@ Please rename it to one of: ${correctEncodings}.`);
     };
     const serializeEncoding = (encoding)=>'string' == typeof encoding ? `"${encoding}"` : String(encoding);
     const external_node_fs_namespaceObject = require("node:fs");
+    var external_node_buffer_ = __webpack_require__("node:buffer");
+    const external_node_fs_promises_namespaceObject = require("node:fs/promises");
+    const which_command_isWindows = 'win32' === external_node_process_namespaceObject.platform;
+    const separatorPattern = which_command_isWindows ? /[\/\\]/v : /\//v;
+    const defaultPathExt = '.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC';
+    function which_command_resolveOptions(command, options) {
+        if ('string' != typeof command || 0 === command.length) throw new TypeError('Expected a non-empty string.');
+        const { cwd = external_node_process_namespaceObject.cwd(), path: searchPath = external_node_process_namespaceObject.env.PATH ?? (which_command_isWindows ? external_node_process_namespaceObject.env.Path : void 0) ?? '', pathExt = external_node_process_namespaceObject.env.PATHEXT || defaultPathExt } = options;
+        return {
+            cwd,
+            searchPath,
+            pathExt
+        };
+    }
+    function windowsExtensions(command, pathExt) {
+        const extensions = pathExt.split(external_node_path_namespaceObject.delimiter).filter(Boolean);
+        const commandExtension = external_node_path_namespaceObject.extname(command).toLowerCase();
+        if ('' !== commandExtension && extensions.some((extension)=>extension.toLowerCase() === commandExtension)) return [
+            '',
+            ...extensions
+        ];
+        return extensions;
+    }
+    function* candidatePaths(command, { cwd, searchPath, pathExt }) {
+        const extensions = which_command_isWindows ? windowsExtensions(command, pathExt) : [
+            ''
+        ];
+        if (separatorPattern.test(command)) {
+            const base = external_node_path_namespaceObject.resolve(cwd, command);
+            for (const extension of extensions)yield base + extension;
+            return;
+        }
+        const directories = [
+            ...which_command_isWindows ? [
+                cwd
+            ] : [],
+            ...searchPath.split(external_node_path_namespaceObject.delimiter)
+        ];
+        for (const directory of directories){
+            const unquoted = which_command_isWindows && directory.length > 1 && directory.startsWith('"') && directory.endsWith('"') ? directory.slice(1, -1) : directory;
+            if ('' === unquoted) continue;
+            const base = external_node_path_namespaceObject.resolve(cwd, unquoted, command);
+            for (const extension of extensions)yield base + extension;
+        }
+    }
+    function isExecutableSync(filePath) {
+        let stats;
+        try {
+            stats = external_node_fs_namespaceObject.statSync(filePath);
+        } catch (error) {
+            return which_command_isWindows && 'EACCES' === error.code;
+        }
+        if (!stats.isFile()) return false;
+        if (which_command_isWindows) return true;
+        try {
+            external_node_fs_namespaceObject.accessSync(filePath, external_node_fs_namespaceObject.constants.X_OK);
+            return true;
+        } catch  {
+            return false;
+        }
+    }
+    function whichCommandSync(command, options = {}) {
+        const resolved = which_command_resolveOptions(command, options);
+        for (const candidate of candidatePaths(command, resolved))if (isExecutableSync(candidate)) return candidate;
+    }
+    const parseCommandFile = (file, commandArguments, options)=>{
+        const parsed = {
+            file,
+            commandArguments: [
+                ...commandArguments
+            ],
+            options
+        };
+        if (options.shell || 'win32' !== external_node_process_namespaceObject.platform) return parsed;
+        return escapeWindowsCommand(parsed);
+    };
+    const directlyExecutableRegExp = /\.(?:com|exe)$/i;
+    const batchFileRegExp = /\.(?:bat|cmd)$/i;
+    const escapeWindowsCommand = (parsed)=>{
+        const resolvedFile = resolveWithShebang(parsed);
+        if (void 0 !== resolvedFile && directlyExecutableRegExp.test(resolvedFile)) {
+            if (void 0 === parsed.options.argv0) parsed.options.argv0 = parsed.file;
+            parsed.file = resolvedFile;
+            return parsed;
+        }
+        for (const value of [
+            parsed.file,
+            ...parsed.commandArguments
+        ])assertNoLineBreak(value);
+        const isDoubleEscape = void 0 !== resolvedFile && batchFileRegExp.test(resolvedFile);
+        const escapedFile = escapeMetaChars(external_node_path_namespaceObject.normalize(resolvedFile ?? parsed.file));
+        const escapedArguments = parsed.commandArguments.map((argument)=>escapeArgument(argument, isDoubleEscape));
+        const commandLine = `"${[
+            escapedFile,
+            ...escapedArguments
+        ].join(' ')}"`;
+        parsed.options.windowsVerbatimArguments = true;
+        return {
+            file: external_node_process_namespaceObject.env.comspec || 'cmd.exe',
+            commandArguments: [
+                '/d',
+                '/s',
+                '/c',
+                commandLine
+            ],
+            options: parsed.options
+        };
+    };
+    const resolveWithShebang = (parsed)=>{
+        const resolvedFile = resolvePath(parsed);
+        const interpreter = void 0 !== resolvedFile && readShebang(resolvedFile);
+        if (!interpreter) return resolvedFile;
+        parsed.commandArguments.unshift(resolvedFile);
+        parsed.file = interpreter;
+        return resolvePath(parsed);
+    };
+    const resolvePath = (parsed)=>{
+        const environment = parsed.options.env || external_node_process_namespaceObject.env;
+        const cwd = parsed.options.cwd ?? external_node_process_namespaceObject.cwd();
+        const environmentPathExt = getWindowsEnvironmentValue(environment, 'PATHEXT');
+        const commandExtension = external_node_path_namespaceObject.extname(parsed.file);
+        const pathExt = '' === commandExtension ? environmentPathExt : `${commandExtension}${external_node_path_namespaceObject.delimiter}${environmentPathExt ?? ''}`;
+        if (hasWindowsPathSeparator(parsed.file)) return whichCommandSync(external_node_path_namespaceObject.resolve(cwd, parsed.file), {
+            cwd,
+            pathExt
+        });
+        const searchPath = getWindowsEnvironmentValue(environment, 'PATH') ?? getWindowsEnvironmentValue(external_node_process_namespaceObject.env, 'PATH') ?? '';
+        const resolveOptions = {
+            cwd,
+            path: searchPath,
+            pathExt
+        };
+        return shouldSearchCurrentDirectory(environment) ? whichCommandSync(parsed.file, resolveOptions) : resolvePathDirectories(parsed.file, resolveOptions);
+    };
+    const hasWindowsPathSeparator = (file)=>file.includes('/') || file.includes('\\') || file.includes(':');
+    const shouldSearchCurrentDirectory = (environment)=>void 0 === getWindowsEnvironmentValue(external_node_process_namespaceObject.env, 'NODEFAULTCURRENTDIRECTORYINEXEPATH') && void 0 === getWindowsEnvironmentValue(environment, 'NODEFAULTCURRENTDIRECTORYINEXEPATH');
+    const resolvePathDirectories = (file, { cwd, path: searchPath, pathExt })=>{
+        for (const directory of searchPath.split(external_node_path_namespaceObject.delimiter)){
+            const unquotedDirectory = directory.length > 1 && directory.startsWith('"') && directory.endsWith('"') ? directory.slice(1, -1) : directory;
+            if ('' === unquotedDirectory) continue;
+            const resolvedFile = whichCommandSync(external_node_path_namespaceObject.resolve(cwd, unquotedDirectory, file), {
+                cwd,
+                pathExt
+            });
+            if (void 0 !== resolvedFile) return resolvedFile;
+        }
+    };
+    const getWindowsEnvironmentValue = (environment, name)=>{
+        const environmentKey = Object.keys(environment).sort().find((key)=>key.toUpperCase() === name);
+        return void 0 === environmentKey ? void 0 : environment[environmentKey];
+    };
+    const SHEBANG_BYTE_LENGTH = 150;
+    const readShebang = (file)=>{
+        const buffer = external_node_buffer_.Buffer.alloc(SHEBANG_BYTE_LENGTH);
+        try {
+            const fileDescriptor = (0, external_node_fs_namespaceObject.openSync)(file, 'r');
+            try {
+                (0, external_node_fs_namespaceObject.readSync)(fileDescriptor, buffer, 0, SHEBANG_BYTE_LENGTH, 0);
+            } finally{
+                (0, external_node_fs_namespaceObject.closeSync)(fileDescriptor);
+            }
+        } catch  {
+            return;
+        }
+        return parseShebang(buffer.toString());
+    };
+    const shebangRegExp = /^#!(?<line>.*)/;
+    const parseShebang = (contents)=>{
+        const shebangLine = contents.match(shebangRegExp)?.groups.line.trim();
+        if (!shebangLine) return;
+        const [interpreterPath, argument] = shebangLine.split(' ');
+        const interpreter = interpreterPath.split('/').at(-1);
+        if ('env' === interpreter) return argument;
+        return argument ? `${interpreter} ${argument}` : interpreter;
+    };
+    const lineBreakRegExp = /[\n\r]/;
+    const assertNoLineBreak = (value)=>{
+        if (lineBreakRegExp.test(value)) throw new TypeError(`The command and its arguments cannot contain a line break on Windows without a shell.\nThis would allow a command injection with \`cmd.exe\`.\nInvalid value: ${JSON.stringify(`${value}`)}`);
+    };
+    const metaCharsRegExp = /[()\][%!^"`<>&|;, *?]/g;
+    const escapeMetaChars = (value)=>value.replaceAll(metaCharsRegExp, '^$&');
+    const backslashRunRegExp = /\\+/g;
+    const escapeArgument = (rawArgument, doubleEscape)=>{
+        const argument = `${rawArgument}`.replaceAll(backslashRunRegExp, (backslashes, offset, string)=>{
+            const nextCharacter = string[offset + backslashes.length];
+            const isPrecedesDoubleQuote = '"' === nextCharacter || void 0 === nextCharacter;
+            return isPrecedesDoubleQuote ? backslashes.repeat(2) : backslashes;
+        }).replaceAll('"', '\\"');
+        const escapedArgument = escapeMetaChars(`"${argument}"`);
+        return doubleEscape ? escapeMetaChars(escapedArgument) : escapedArgument;
+    };
     const normalizeCwd = (cwd = getDefaultCwd())=>{
         const cwdString = safeNormalizeFileUrl(cwd, 'The "cwd" option');
         return external_node_path_namespaceObject.resolve(cwdString);
@@ -22485,30 +22206,36 @@ Please rename it to one of: ${correctEncodings}.`);
         if (!cwdStat.isDirectory()) return `The "cwd" option is not a directory: ${cwd}.\n${originalMessage}`;
         return originalMessage;
     };
+    const cmdExeRegExp = /^cmd(?:\.exe)?$/i;
     const normalizeOptions = (filePath, rawArguments, rawOptions)=>{
-        rawOptions.cwd = normalizeCwd(rawOptions.cwd);
-        const [processedFile, processedArguments, processedOptions] = handleNodeOption(filePath, rawArguments, rawOptions);
-        const { command: file, args: commandArguments, options: initialOptions } = cross_spawn._parse(processedFile, processedArguments, processedOptions);
-        const fdOptions = normalizeFdSpecificOptions(initialOptions);
+        const sanitizedOptions = {
+            __proto__: null,
+            ...rawOptions
+        };
+        sanitizedOptions.cwd = normalizeCwd(sanitizedOptions.cwd);
+        const [processedFile, processedArguments, processedOptions] = handleNodeOption(filePath, rawArguments, sanitizedOptions);
+        const fdOptions = normalizeFdSpecificOptions(processedOptions);
         const options = addDefaultOptions(fdOptions);
+        options.env = getEnv(options);
+        const { file, commandArguments } = parseCommandFile(processedFile, processedArguments, options);
         validateTimeout(options);
         validateEncoding(options);
         validateIpcInputOption(options);
         validateCancelSignal(options);
         validateGracefulCancel(options);
         options.shell = normalizeFileUrl(options.shell);
-        options.env = getEnv(options);
         options.killSignal = normalizeKillSignal(options.killSignal);
         options.forceKillAfterDelay = normalizeForceKillAfterDelay(options.forceKillAfterDelay);
         options.lines = options.lines.map((lines, fdNumber)=>lines && !BINARY_ENCODINGS.has(options.encoding) && options.buffer[fdNumber]);
-        if ('win32' === external_node_process_namespaceObject.platform && 'cmd' === external_node_path_namespaceObject.basename(file, '.exe')) commandArguments.unshift('/q');
+        if ('win32' === external_node_process_namespaceObject.platform && cmdExeRegExp.test(external_node_path_namespaceObject.basename(file))) commandArguments.unshift('/q');
         return {
             file,
             commandArguments,
             options
         };
     };
-    const addDefaultOptions = ({ extendEnv = true, preferLocal = false, cwd, localDir: localDirectory = cwd, encoding = 'utf8', reject = true, cleanup = true, all = false, windowsHide = true, killSignal = 'SIGTERM', forceKillAfterDelay = true, gracefulCancel = false, ipcInput, ipc = void 0 !== ipcInput || gracefulCancel, serialization = 'advanced', ...options })=>({
+    const addDefaultOptions = ({ extendEnv = true, preferLocal = false, cwd, localDir: localDirectory = cwd, encoding = 'utf8', reject = true, cleanup = true, killDescendants = false, all = false, windowsHide = true, killSignal = 'SIGTERM', forceKillAfterDelay = true, gracefulCancel = false, ipcInput, ipc = void 0 !== ipcInput || gracefulCancel, serialization = 'advanced', ...options })=>({
+            __proto__: null,
             ...options,
             extendEnv,
             preferLocal,
@@ -22517,6 +22244,7 @@ Please rename it to one of: ${correctEncodings}.`);
             encoding,
             reject,
             cleanup,
+            killDescendants,
             all,
             windowsHide,
             killSignal,
@@ -23220,6 +22948,11 @@ Please rename it to one of: ${correctEncodings}.`);
         'append'
     ]);
     const isFilePathString = (file)=>'string' == typeof file;
+    const isStdioValueObject = (value)=>is_plain_obj_isPlainObject(value) && Object.keys(value).length > 0 && Object.keys(value).every((key)=>STDIO_VALUE_KEYS.has(key)) && 'value' in value;
+    const STDIO_VALUE_KEYS = new Set([
+        'value',
+        'input'
+    ]);
     const isUnknownStdioString = (type, value)=>'native' === type && 'string' == typeof value && !KNOWN_STDIO_STRINGS.has(value);
     const KNOWN_STDIO_STRINGS = new Set([
         'ipc',
@@ -23335,7 +23068,11 @@ Please rename it to one of: ${correctEncodings}.`);
             encoding
         });
     };
-    const normalizeDuplex = ({ stdioItem, stdioItem: { value: { transform, transform: { writableObjectMode, readableObjectMode }, objectMode = readableObjectMode } }, optionName })=>{
+    const normalizeDuplex = ({ stdioItem, optionName })=>{
+        const { value } = stdioItem;
+        const { transform } = value;
+        const { writableObjectMode, readableObjectMode } = transform;
+        const { objectMode = readableObjectMode } = value;
         if (objectMode && !readableObjectMode) throw new TypeError(`The \`${optionName}.objectMode\` option can only be \`true\` if \`new Duplex({objectMode: true})\` is used.`);
         if (!objectMode && readableObjectMode) throw new TypeError(`The \`${optionName}.objectMode\` option cannot be \`false\` if \`new Duplex({objectMode: true})\` is used.`);
         return {
@@ -23385,7 +23122,12 @@ Please rename it to one of: ${correctEncodings}.`);
         if (directions.includes('input') && directions.includes('output')) throw new TypeError(`The \`${optionName}\` option must not be an array of both readable and writable values.`);
         return directions.find(Boolean) ?? DEFAULT_DIRECTION;
     };
-    const getStdioItemDirection = ({ type, value }, fdNumber)=>KNOWN_DIRECTIONS[fdNumber] ?? guessStreamDirection[type](value);
+    const getStdioItemDirection = (stdioItem, fdNumber)=>KNOWN_DIRECTIONS[fdNumber] ?? getRequestedDirection(stdioItem);
+    const getRequestedDirection = ({ type, value, direction, optionName })=>{
+        const guessedDirection = guessStreamDirection[type](value);
+        if ('input' === direction && 'output' === guessedDirection) throw new TypeError(`The \`${optionName}\` option is invalid: \`input: true\` cannot be used with a writable value, which is always an output.`);
+        return direction ?? guessedDirection;
+    };
     const KNOWN_DIRECTIONS = [
         'input',
         'output',
@@ -23433,13 +23175,25 @@ Please rename it to one of: ${correctEncodings}.`);
         ].includes(value)) return 'output';
     };
     const DEFAULT_DIRECTION = 'output';
-    const normalizeIpcStdioArray = (stdioArray, ipc)=>ipc && !stdioArray.includes('ipc') ? [
+    const normalizeIpcStdioArray = (stdioArray, ipc)=>ipc ? [
             ...stdioArray,
             'ipc'
         ] : stdioArray;
     const normalizeStdioOption = ({ stdio, ipc, buffer, ...options }, verboseInfo, isSync)=>{
         const stdioArray = getStdioArray(stdio, options).map((stdioOption, fdNumber)=>stdio_option_addDefaultValue(stdioOption, fdNumber));
+        validateIpcStdioOption(stdioArray);
         return isSync ? normalizeStdioSync(stdioArray, buffer, verboseInfo) : normalizeIpcStdioArray(stdioArray, ipc);
+    };
+    const validateIpcStdioOption = (stdioArray)=>{
+        if (stdioArray.some((stdioOption)=>hasIpcStdioOption(stdioOption))) throw new Error('The `ipc: true` option must be used instead of `stdio: \'ipc\'`.');
+    };
+    const hasIpcStdioOption = (stdioOption)=>{
+        if (Array.isArray(stdioOption)) return stdioOption.some((item)=>hasIpcStdioItem(item));
+        return hasIpcStdioItem(stdioOption);
+    };
+    const hasIpcStdioItem = (stdioOption)=>{
+        if (isStdioValueObject(stdioOption)) return 'ipc' === stdioOption.value;
+        return 'ipc' === stdioOption;
     };
     const getStdioArray = (stdio, options)=>{
         if (void 0 === stdio) return STANDARD_STREAMS_ALIASES.map((alias)=>options[alias]);
@@ -23461,8 +23215,86 @@ Please rename it to one of: ${correctEncodings}.`);
         if (null == stdioOption) return fdNumber >= STANDARD_STREAMS_ALIASES.length ? 'ignore' : 'pipe';
         return stdioOption;
     };
-    const normalizeStdioSync = (stdioArray, buffer, verboseInfo)=>stdioArray.map((stdioOption, fdNumber)=>!buffer[fdNumber] && 0 !== fdNumber && !isFullVerbose(verboseInfo, fdNumber) && isOutputPipeOnly(stdioOption) ? 'ignore' : stdioOption);
-    const isOutputPipeOnly = (stdioOption)=>'pipe' === stdioOption || Array.isArray(stdioOption) && stdioOption.every((item)=>'pipe' === item);
+    const normalizeStdioSync = (stdioArray, buffer, verboseInfo)=>stdioArray.map((stdioOption, fdNumber)=>!buffer[fdNumber] && 0 !== fdNumber && !isFullVerbose(verboseInfo, fdNumber) && isOutputPipeOnly(stdioOption, fdNumber) ? 'ignore' : stdioOption);
+    const isOutputPipeOnly = (stdioOption, fdNumber)=>isOutputPipe(stdioOption, fdNumber) || Array.isArray(stdioOption) && stdioOption.every((item)=>isOutputPipe(item, fdNumber));
+    const isOutputPipe = (stdioOption, fdNumber)=>'pipe' === stdioOption || isOutputPipeObject(stdioOption, fdNumber);
+    const isOutputPipeObject = (stdioOption, fdNumber)=>isStdioValueObject(stdioOption) && 'pipe' === stdioOption.value && (void 0 === stdioOption.input || false === stdioOption.input || isFixedOutputPipe(fdNumber, stdioOption.input));
+    const isFixedOutputPipe = (fdNumber, input)=>true === input && (1 === fdNumber || 2 === fdNumber);
+    const getToStream = (destination, to = 'stdin')=>{
+        const isWritable = true;
+        const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(destination);
+        const fdNumber = getFdNumber(fileDescriptors, to, isWritable);
+        const destinationStream = destination.stdio[fdNumber];
+        if (null === destinationStream) throw new TypeError(getInvalidStdioOptionMessage(fdNumber, to, options, isWritable));
+        return destinationStream;
+    };
+    const getFromStream = (source, from = 'stdout')=>{
+        const isWritable = false;
+        const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(source);
+        const fdNumber = getFdNumber(fileDescriptors, from, isWritable);
+        const sourceStream = 'all' === fdNumber ? source.all : source.stdio[fdNumber];
+        if (null == sourceStream) throw new TypeError(getInvalidStdioOptionMessage(fdNumber, from, options, isWritable));
+        return sourceStream;
+    };
+    const SUBPROCESS_OPTIONS = new WeakMap();
+    const getFdNumber = (fileDescriptors, fdName, isWritable)=>{
+        const fdNumber = parseFdNumber(fdName, isWritable);
+        validateFdNumber(fdNumber, fdName, isWritable, fileDescriptors);
+        return fdNumber;
+    };
+    const parseFdNumber = (fdName, isWritable)=>{
+        const fdNumber = parseFd(fdName);
+        if (void 0 !== fdNumber) return fdNumber;
+        const { validOptions, defaultValue } = isWritable ? {
+            validOptions: '"stdin"',
+            defaultValue: 'stdin'
+        } : {
+            validOptions: '"stdout", "stderr", "all"',
+            defaultValue: 'stdout'
+        };
+        throw new TypeError(`"${getOptionName(isWritable)}" must not be "${fdName}".
+It must be ${validOptions} or "fd3", "fd4" (and so on).
+It is optional and defaults to "${defaultValue}".`);
+    };
+    const validateFdNumber = (fdNumber, fdName, isWritable, fileDescriptors)=>{
+        const fileDescriptor = fileDescriptors[getUsedDescriptor(fdNumber)];
+        if (void 0 === fileDescriptor) throw new TypeError(`"${getOptionName(isWritable)}" must not be ${fdName}. That file descriptor does not exist.
+Please set the "stdio" option to ensure that file descriptor exists.`);
+        if ('input' === fileDescriptor.direction && !isWritable) throw new TypeError(`"${getOptionName(isWritable)}" must not be ${fdName}. It must be a readable stream, not writable.`);
+        if ('input' !== fileDescriptor.direction && isWritable) throw new TypeError(`"${getOptionName(isWritable)}" must not be ${fdName}. It must be a writable stream, not readable.
+If you meant to use it as input, please set its "stdio" option to \`{value: 'pipe', input: true}\`.`);
+    };
+    const getInvalidStdioOptionMessage = (fdNumber, fdName, options, isWritable)=>{
+        if ('all' === fdNumber && !options.all) return 'The "all" option must be true to use "from: \'all\'".';
+        const { optionName, optionValue } = getInvalidStdioOption(fdNumber, options);
+        return `The "${optionName}: ${serializeOptionValue(optionValue)}" option is incompatible with using "${getOptionName(isWritable)}: ${serializeOptionValue(fdName)}".
+Please set this option with "pipe" instead.`;
+    };
+    const getInvalidStdioOption = (fdNumber, { stdin, stdout, stderr, stdio })=>{
+        const usedDescriptor = getUsedDescriptor(fdNumber);
+        if (0 === usedDescriptor && void 0 !== stdin) return {
+            optionName: 'stdin',
+            optionValue: stdin
+        };
+        if (1 === usedDescriptor && void 0 !== stdout) return {
+            optionName: 'stdout',
+            optionValue: stdout
+        };
+        if (2 === usedDescriptor && void 0 !== stderr) return {
+            optionName: 'stderr',
+            optionValue: stderr
+        };
+        return {
+            optionName: `stdio[${usedDescriptor}]`,
+            optionValue: stdio[usedDescriptor]
+        };
+    };
+    const getUsedDescriptor = (fdNumber)=>'all' === fdNumber ? 1 : fdNumber;
+    const getOptionName = (isWritable)=>isWritable ? 'to' : 'from';
+    const serializeOptionValue = (value)=>{
+        if ('string' == typeof value) return `'${value}'`;
+        return 'number' == typeof value ? `${value}` : 'Stream';
+    };
     const handleNativeStream = ({ stdioItem, stdioItem: { type }, isStdioArray, fdNumber, direction, isSync })=>{
         if (!isStdioArray || 'native' !== type) return stdioItem;
         return isSync ? handleNativeStreamSync({
@@ -23571,7 +23403,8 @@ Please rename it to one of: ${correctEncodings}.`);
         };
         throw new Error('The `inputFile` option must be a file path string or a file URL.');
     };
-    const filterDuplicates = (stdioItems)=>stdioItems.filter((stdioItemOne, indexOne)=>stdioItems.every((stdioItemTwo, indexTwo)=>stdioItemOne.value !== stdioItemTwo.value || indexOne >= indexTwo || 'generator' === stdioItemOne.type || 'asyncGenerator' === stdioItemOne.type));
+    const filterDuplicates = (stdioItems)=>stdioItems.filter((stdioItemOne, indexOne)=>stdioItems.every((stdioItemTwo, indexTwo)=>!hasSameValueAndDirection(stdioItemOne, stdioItemTwo) || indexOne >= indexTwo || 'generator' === stdioItemOne.type || 'asyncGenerator' === stdioItemOne.type));
+    const hasSameValueAndDirection = (stdioItemOne, stdioItemTwo)=>stdioItemOne.value === stdioItemTwo.value && stdioItemOne.direction === stdioItemTwo.direction;
     const getDuplicateStream = ({ stdioItem: { type, value, optionName }, direction, fileDescriptors, isSync })=>{
         const otherStdioItems = getOtherStdioItems(fileDescriptors, type);
         if (0 === otherStdioItems.length) return;
@@ -23674,9 +23507,10 @@ Please rename it to one of: ${correctEncodings}.`);
         const values = Array.isArray(stdioOption) ? stdioOption : [
             stdioOption
         ];
+        const inputStdioItems = handleInputOptions(options, fdNumber);
         const initialStdioItems = [
-            ...values.map((value)=>initializeStdioItem(value, optionName)),
-            ...handleInputOptions(options, fdNumber)
+            ...omitInheritedStdin(values.map((value)=>initializeStdioItem(value, optionName)), inputStdioItems),
+            ...inputStdioItems
         ];
         const stdioItems = filterDuplicates(initialStdioItems);
         const isStdioArray = stdioItems.length > 1;
@@ -23687,19 +23521,32 @@ Please rename it to one of: ${correctEncodings}.`);
             isStdioArray
         };
     };
-    const initializeStdioItem = (value, optionName)=>({
+    const omitInheritedStdin = (stdioItems, inputStdioItems)=>inputStdioItems.length > 0 && isInheritedStdinOnly(stdioItems) ? [] : stdioItems;
+    const isInheritedStdinOnly = (stdioItems)=>1 === stdioItems.length && 'native' === stdioItems[0].type && 'inherit' === stdioItems[0].value;
+    const initializeStdioItem = (value, optionName)=>{
+        if (isStdioValueObject(value)) return initializeStdioValueObject(value, optionName);
+        return {
             type: getStdioItemType(value, optionName),
             value,
             optionName
-        });
+        };
+    };
+    const initializeStdioValueObject = ({ value, input }, optionName)=>{
+        checkBooleanOption(input, `${optionName}.input`);
+        return {
+            type: getStdioItemType(value, optionName),
+            value,
+            direction: input ? 'input' : void 0,
+            optionName
+        };
+    };
     const validateStdioArray = (stdioItems, isStdioArray, optionName)=>{
         if (0 === stdioItems.length) throw new TypeError(`The \`${optionName}\` option must not be an empty array.`);
         if (!isStdioArray) return;
         for (const { value, optionName } of stdioItems)if (INVALID_STDIO_ARRAY_OPTIONS.has(value)) throw new Error(`The \`${optionName}\` option must not include \`${value}\`.`);
     };
     const INVALID_STDIO_ARRAY_OPTIONS = new Set([
-        'ignore',
-        'ipc'
+        'ignore'
     ]);
     const validateStreams = (stdioItems)=>{
         for (const stdioItem of stdioItems)validateFileStdio(stdioItem);
@@ -23774,8 +23621,13 @@ For example, you can use the \`pathToFileURL()\` method of the \`url\` core modu
         throwInvalidSyncValue(optionName, TYPE_TO_MESSAGE[type]);
     };
     const forbiddenNativeIfSync = ({ optionName, value })=>{
-        if ('ipc' === value || 'overlapped' === value) throwInvalidSyncValue(optionName, `"${value}"`);
+        if ('overlapped' === value) throwInvalidSyncValue(optionName, `"${value}"`);
         return {};
+    };
+    const forbiddenNativeInputIfSync = (stdioItem)=>{
+        const { optionName, value } = stdioItem;
+        if ('pipe' === value && 'stdin' !== optionName) throw new TypeError(`Only the \`stdin\` option, not \`${optionName}\`, can be an input pipe with synchronous methods.`);
+        return forbiddenNativeIfSync(stdioItem);
     };
     const throwInvalidSyncValue = (optionName, value)=>{
         throw new TypeError(`The \`${optionName}\` option cannot be ${value} with synchronous methods.`);
@@ -23793,6 +23645,7 @@ For example, you can use the \`pathToFileURL()\` method of the \`url\` core modu
     const addPropertiesSync = {
         input: {
             ...handle_sync_addProperties,
+            native: forbiddenNativeInputIfSync,
             fileUrl: ({ value })=>({
                     contents: [
                         bufferToUint8Array((0, external_node_fs_namespaceObject.readFileSync)(value))
@@ -23860,7 +23713,8 @@ For example, you can use the \`pathToFileURL()\` method of the \`url\` core modu
         if ('string' != typeof chunk) return void (yield chunk);
         let { previousChunks } = state;
         let start = -1;
-        for(let end = 0; end < chunk.length; end += 1)if ('\n' === chunk[end]) {
+        for(let end = 0; end < chunk.length; end += 1){
+            if ('\n' !== chunk[end]) continue;
             const newlineLength = getNewlineLength(chunk, end, preserveNewlines, state);
             let line = chunk.slice(start + 1, end + 1 - newlineLength);
             if (previousChunks.length > 0) {
@@ -23914,7 +23768,6 @@ For example, you can use the \`pathToFileURL()\` method of the \`url\` core modu
         LF: 0x0A,
         concatBytes: concatUint8Array
     };
-    var external_node_buffer_ = __webpack_require__("node:buffer");
     const getValidateTransformInput = (writableObjectMode, optionName)=>writableObjectMode ? void 0 : validateStringTransformInput.bind(void 0, optionName);
     const validateStringTransformInput = function*(optionName, chunk) {
         if ('string' != typeof chunk && !isUint8Array(chunk) && !external_node_buffer_.Buffer.isBuffer(chunk)) throw new TypeError(`The \`${optionName}\` option's transform must use "objectMode: true" to receive as input: ${typeof chunk}.`);
@@ -24102,8 +23955,8 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         const invalidItem = newContents.find((item)=>'string' != typeof item && !isUint8Array(item));
         if (void 0 !== invalidItem) throw new TypeError(`The \`stdin\` option is invalid: when passing objects as input, a transform must be used to serialize them to strings or Uint8Arrays: ${invalidItem}.`);
     };
-    const shouldLogOutput = ({ stdioItems, encoding, verboseInfo, fdNumber })=>'all' !== fdNumber && isFullVerbose(verboseInfo, fdNumber) && !BINARY_ENCODINGS.has(encoding) && fdUsesVerbose(fdNumber) && (stdioItems.some(({ type, value })=>'native' === type && PIPED_STDIO_VALUES.has(value)) || stdioItems.every(({ type })=>TRANSFORM_TYPES.has(type)));
-    const fdUsesVerbose = (fdNumber)=>1 === fdNumber || 2 === fdNumber;
+    const shouldLogOutput = ({ stdioItems, encoding, verboseInfo, fdNumber })=>'all' !== fdNumber && isFullVerbose(verboseInfo, fdNumber) && !BINARY_ENCODINGS.has(encoding) && isFdVerbose(fdNumber) && (stdioItems.some(({ type, value })=>'native' === type && PIPED_STDIO_VALUES.has(value)) || stdioItems.every(({ type })=>TRANSFORM_TYPES.has(type)));
+    const isFdVerbose = (fdNumber)=>1 === fdNumber || 2 === fdNumber;
     const PIPED_STDIO_VALUES = new Set([
         'pipe',
         'overlapped'
@@ -24131,7 +23984,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             })
         };
         const state = {};
-        const outputFiles = new Set([]);
+        const outputFiles = new Set();
         const transformedOutput = output.map((result, fdNumber)=>transformOutputResultSync({
                 result,
                 fileDescriptors,
@@ -24219,7 +24072,8 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         }
     };
     const writeToFiles = (serializedResult, stdioItems, outputFiles)=>{
-        for (const { path, append } of stdioItems.filter(({ type })=>FILE_TYPES.has(type))){
+        const fileItems = stdioItems.filter(({ type })=>FILE_TYPES.has(type));
+        for (const { path, append } of fileItems){
             const pathString = 'string' == typeof path ? path : path.toString();
             if (append || outputFiles.has(pathString)) (0, external_node_fs_namespaceObject.appendFileSync)(path, serializedResult);
             else {
@@ -24284,13 +24138,13 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     const isFailedExit = (exitCode, signal)=>0 !== exitCode || null !== signal;
     const getExitResultSync = ({ error, status: exitCode, signal, output }, { maxBuffer })=>{
         const resultError = getResultError(error, exitCode, signal);
-        const timedOut = resultError?.code === 'ETIMEDOUT';
+        const isTimedOut = resultError?.code === 'ETIMEDOUT';
         const isMaxBuffer = isMaxBufferSync(resultError, output, maxBuffer);
         return {
             resultError,
             exitCode,
             signal,
-            timedOut,
+            timedOut: isTimedOut,
             isMaxBuffer
         };
     };
@@ -24333,10 +24187,11 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             ...options,
             ipc: false
         } : options;
-    const validateSyncOptions = ({ ipc, ipcInput, detached, cancelSignal })=>{
+    const validateSyncOptions = ({ ipc, ipcInput, detached, cancelSignal, killDescendants })=>{
         if (ipcInput) throwInvalidSyncOption('ipcInput');
         if (ipc) throwInvalidSyncOption('ipc: true');
         if (detached) throwInvalidSyncOption('detached: true');
+        if (killDescendants) throwInvalidSyncOption('killDescendants: true');
         if (cancelSignal) throwInvalidSyncOption('cancelSignal');
     };
     const throwInvalidSyncOption = (value)=>{
@@ -24425,7 +24280,10 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             startTime,
             isSync: true
         });
-    const getOneMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true, filter } = {})=>{
+    const internalGetOneMessageOptions = Symbol('internalGetOneMessageOptions');
+    const getOneMessage = ({ anyProcess, channel, isSubprocess, ipc }, options = {})=>{
+        const { reference = true, filter } = options;
+        const { signal } = options[internalGetOneMessageOptions] ?? {};
         validateIpcMethod({
             methodName: 'getOneMessage',
             isSubprocess,
@@ -24437,13 +24295,15 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             channel,
             isSubprocess,
             filter,
-            reference
+            reference,
+            signal
         });
     };
-    const getOneMessageAsync = async ({ anyProcess, channel, isSubprocess, filter, reference })=>{
+    const getOneMessageAsync = async ({ anyProcess, channel, isSubprocess, filter, reference, signal })=>{
         addReference(channel, reference);
         const ipcEmitter = getIpcEmitter(anyProcess, channel, isSubprocess);
         const controller = new AbortController();
+        stopOnAbort(signal, controller);
         try {
             return await Promise.race([
                 getMessage(ipcEmitter, filter, controller),
@@ -24457,6 +24317,16 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             controller.abort();
             removeReference(channel, reference);
         }
+    };
+    const stopOnAbort = (signal, controller)=>{
+        if (void 0 === signal) return;
+        if (signal.aborted) return void controller.abort();
+        signal.addEventListener('abort', ()=>{
+            controller.abort();
+        }, {
+            once: true,
+            signal: controller.signal
+        });
     };
     const getMessage = async (ipcEmitter, filter, { signal })=>{
         if (void 0 === filter) {
@@ -24481,15 +24351,18 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         });
         throw getStrictResponseError(error, isSubprocess);
     };
-    const getEachMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true } = {})=>loopOnMessages({
-            anyProcess,
-            channel,
-            isSubprocess,
-            ipc,
-            shouldAwait: !isSubprocess,
-            reference
+    const internalGetEachMessageOptions = Symbol('internalGetEachMessageOptions');
+    const getEachMessage = (subprocessInfo, options = {})=>{
+        const { reference = true } = options;
+        const { signal, shouldAwait = !subprocessInfo.isSubprocess } = options[internalGetEachMessageOptions] ?? {};
+        return loopOnMessages({
+            ...subprocessInfo,
+            shouldAwait,
+            reference,
+            signal
         });
-    const loopOnMessages = ({ anyProcess, channel, isSubprocess, ipc, shouldAwait, reference })=>{
+    };
+    const loopOnMessages = ({ anyProcess, waitProcess = anyProcess, channel, isSubprocess, ipc, shouldAwait, reference, signal })=>{
         validateIpcMethod({
             methodName: 'getEachMessage',
             isSubprocess,
@@ -24500,6 +24373,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         const ipcEmitter = getIpcEmitter(anyProcess, channel, isSubprocess);
         const controller = new AbortController();
         const state = {};
+        get_each_stopOnAbort(signal, controller);
         stopOnDisconnect(anyProcess, ipcEmitter, controller);
         abortOnStrictError({
             ipcEmitter,
@@ -24509,6 +24383,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         });
         return iterateOnMessages({
             anyProcess,
+            waitProcess,
             channel,
             ipcEmitter,
             isSubprocess,
@@ -24516,6 +24391,16 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             controller,
             state,
             reference
+        });
+    };
+    const get_each_stopOnAbort = (signal, controller)=>{
+        if (void 0 === signal) return;
+        if (signal.aborted) return void controller.abort();
+        signal.addEventListener('abort', ()=>{
+            controller.abort();
+        }, {
+            once: true,
+            signal: controller.signal
         });
     };
     const stopOnDisconnect = async (anyProcess, ipcEmitter, controller)=>{
@@ -24535,7 +24420,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             controller.abort();
         } catch  {}
     };
-    const iterateOnMessages = async function*({ anyProcess, channel, ipcEmitter, isSubprocess, shouldAwait, controller, state, reference }) {
+    const iterateOnMessages = async function*({ anyProcess, waitProcess, channel, ipcEmitter, isSubprocess, shouldAwait, controller, state, reference }) {
         try {
             for await (const [message] of (0, external_node_events_.on)(ipcEmitter, 'message', {
                 signal: controller.signal
@@ -24549,30 +24434,30 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             controller.abort();
             removeReference(channel, reference);
             if (!isSubprocess) disconnect(anyProcess);
-            if (shouldAwait) await anyProcess;
+            if (shouldAwait) await waitProcess;
         }
     };
     const throwIfStrictError = ({ error })=>{
         if (error) throw error;
     };
-    const addIpcMethods = (subprocess, { ipc })=>{
-        Object.assign(subprocess, getIpcMethods(subprocess, false, ipc));
+    const addIpcMethods = (target, subprocess, { ipc })=>{
+        Object.assign(target, getIpcMethods(subprocess, false, ipc, target));
     };
     const getIpcExport = ()=>{
         const anyProcess = external_node_process_namespaceObject;
         const isSubprocess = true;
-        const ipc = void 0 !== external_node_process_namespaceObject.channel;
+        const isIpc = void 0 !== external_node_process_namespaceObject.channel;
         return {
-            ...getIpcMethods(anyProcess, isSubprocess, ipc),
+            ...getIpcMethods(anyProcess, isSubprocess, isIpc),
             getCancelSignal: getCancelSignal.bind(void 0, {
                 anyProcess,
                 channel: anyProcess.channel,
                 isSubprocess,
-                ipc
+                ipc: isIpc
             })
         };
     };
-    const getIpcMethods = (anyProcess, isSubprocess, ipc)=>({
+    const getIpcMethods = (anyProcess, isSubprocess, ipc, waitProcess = anyProcess)=>({
             sendMessage: sendMessage.bind(void 0, {
                 anyProcess,
                 channel: anyProcess.channel,
@@ -24589,18 +24474,14 @@ Instead, \`yield\` should either be called with a value, or not be called at all
                 anyProcess,
                 channel: anyProcess.channel,
                 isSubprocess,
-                ipc
+                ipc,
+                waitProcess
             })
         });
     const handleEarlyError = ({ error, command, escapedCommand, fileDescriptors, options, startTime, verboseInfo })=>{
         cleanupCustomStreams(fileDescriptors);
         const subprocess = new external_node_child_process_namespaceObject.ChildProcess();
-        createDummyStreams(subprocess, fileDescriptors);
-        Object.assign(subprocess, {
-            readable: early_error_readable,
-            writable: early_error_writable,
-            duplex: early_error_duplex
-        });
+        const all = createDummyStreams(subprocess, fileDescriptors);
         const earlyError = makeEarlyError({
             error,
             command,
@@ -24613,7 +24494,18 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         const promise = handleDummyPromise(earlyError, verboseInfo, options);
         return {
             subprocess,
-            promise
+            promise,
+            all: options.all ? all : void 0,
+            convertedStreams: {
+                readable: early_error_readable,
+                writable: early_error_writable,
+                duplex: early_error_duplex,
+                readableStream,
+                writableStream,
+                transformStream: early_error_transformStream,
+                iterable: early_error_iterable,
+                [Symbol.asyncIterator]: early_error_iterable
+            }
         };
     };
     const createDummyStreams = (subprocess, fileDescriptors)=>{
@@ -24634,9 +24526,9 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             stdin,
             stdout,
             stderr,
-            all,
             stdio
         });
+        return all;
     };
     const createDummyStream = ()=>{
         const stream = new external_node_stream_.PassThrough();
@@ -24653,6 +24545,10 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             read () {},
             write () {}
         });
+    const readableStream = ()=>external_node_stream_.Readable.toWeb(early_error_readable());
+    const writableStream = ()=>external_node_stream_.Writable.toWeb(early_error_writable());
+    const early_error_transformStream = ()=>external_node_stream_.Duplex.toWeb(early_error_duplex());
+    const early_error_iterable = async function*() {};
     const handleDummyPromise = async (error, verboseInfo, options)=>reject_handleResult(error, verboseInfo, options);
     const handleStdioAsync = (options, verboseInfo)=>handleStdio(addPropertiesAsync, options, verboseInfo, false);
     const forbiddenIfAsync = ({ type, optionName })=>{
@@ -24895,7 +24791,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     const merge_streams_noop = ()=>{};
     const updateMaxListeners = (passThroughStream, increment)=>{
         const maxListeners = passThroughStream.getMaxListeners();
-        if (0 !== maxListeners && maxListeners !== 1 / 0) passThroughStream.setMaxListeners(maxListeners + increment);
+        if (0 !== maxListeners && 1 / 0 !== maxListeners) passThroughStream.setMaxListeners(maxListeners + increment);
     };
     const PASSTHROUGH_LISTENERS_COUNT = 2;
     const PASSTHROUGH_LISTENERS_PER_STREAM = 1;
@@ -24935,8 +24831,10 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     const pipeOutputAsync = (subprocess, fileDescriptors, controller)=>{
         const pipeGroups = new Map();
         for (const [fdNumber, { stdioItems, direction }] of Object.entries(fileDescriptors)){
-            for (const { stream } of stdioItems.filter(({ type })=>TRANSFORM_TYPES.has(type)))pipeTransform(subprocess, stream, direction, fdNumber);
-            for (const { stream } of stdioItems.filter(({ type })=>!TRANSFORM_TYPES.has(type)))pipeStdioItem({
+            const transformItems = stdioItems.filter(({ type })=>TRANSFORM_TYPES.has(type));
+            for (const { stream } of transformItems)pipeTransform(subprocess, stream, direction, fdNumber);
+            const nonTransformItems = stdioItems.filter(({ type })=>!TRANSFORM_TYPES.has(type));
+            for (const { stream } of nonTransformItems)pipeStdioItem({
                 subprocess,
                 stream,
                 direction,
@@ -24945,7 +24843,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
                 controller
             });
         }
-        for (const [outputStream, inputStreams] of pipeGroups.entries()){
+        for (const [outputStream, inputStreams] of pipeGroups){
             const inputStream = 1 === inputStreams.length ? inputStreams[0] : mergeStreams(inputStreams);
             pipeStreams(inputStream, outputStream);
         }
@@ -24981,6 +24879,50 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         if (isStandardStream(stream)) incrementMaxListeners(stream, MAX_LISTENERS_INCREMENT, signal);
     };
     const MAX_LISTENERS_INCREMENT = 2;
+    const win32_namespaceObject = require("node:path/win32");
+    const kill_descendants_isWindows = 'win32' === external_node_process_namespaceObject.platform;
+    const getSpawnOptions = (options)=>options.killDescendants && !kill_descendants_isWindows ? {
+            ...options,
+            detached: true
+        } : options;
+    const getKillFunction = (subprocess, { killDescendants })=>{
+        if (!killDescendants) return subprocess.kill.bind(subprocess);
+        const killDescendantsFunction = kill_descendants_isWindows ? killDescendantsWindows : killDescendantsUnix;
+        return killDescendantsFunction.bind(void 0, subprocess);
+    };
+    const killDescendantsUnix = (subprocess, signal)=>{
+        if (void 0 === subprocess.pid) return false;
+        try {
+            return external_node_process_namespaceObject.kill(-subprocess.pid, signal);
+        } catch  {
+            return subprocess.kill(signal);
+        }
+    };
+    const killDescendantsWindows = (subprocess, signal)=>{
+        if (void 0 === subprocess.pid) return false;
+        const taskkillFile = getTaskkillFile();
+        if (void 0 === taskkillFile) return subprocess.kill(signal);
+        (0, external_node_child_process_namespaceObject.execFile)(taskkillFile, [
+            '/pid',
+            `${subprocess.pid}`,
+            '/T',
+            '/F'
+        ], (error)=>{
+            if (error) subprocess.kill(signal);
+        });
+        return true;
+    };
+    const getTaskkillFile = ()=>{
+        const windowsDirectory = [
+            external_node_process_namespaceObject.env.SystemRoot,
+            external_node_process_namespaceObject.env.windir
+        ].find((directory)=>directory && isWindowsDriveAbsolutePath(directory));
+        return void 0 === windowsDirectory ? void 0 : win32_namespaceObject.join(windowsDirectory, 'System32', 'taskkill.exe');
+    };
+    const isWindowsDriveAbsolutePath = (directory)=>{
+        const { root } = win32_namespaceObject.parse(directory);
+        return /^[a-z]:[/\\]/i.test(root);
+    };
     const signals_signals = [];
     signals_signals.push('SIGHUP', 'SIGINT', 'SIGTERM');
     if ('win32' !== process.platform) signals_signals.push('SIGALRM', 'SIGABRT', 'SIGVTALRM', 'SIGXCPU', 'SIGXFSZ', 'SIGUSR2', 'SIGTRAP', 'SIGSYS', 'SIGQUIT', 'SIGIOT');
@@ -25129,15 +25071,333 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     }
     const mjs_process = globalThis.process;
     const { onExit, load, unload } = signalExitWrap(processOk(mjs_process) ? new SignalExit(mjs_process) : new SignalExitFallback());
-    const cleanupOnExit = (subprocess, { cleanup, detached }, { signal })=>{
+    const cleanupOnExit = (kill, { cleanup, detached }, { signal })=>{
         if (!cleanup || detached) return;
         const removeExitHandler = onExit(()=>{
-            subprocess.kill();
+            kill();
         });
         (0, external_node_events_.addAbortListener)(signal, ()=>{
             removeExitHandler();
         });
     };
+    const initializeConcurrentStreams = ()=>({
+            readableDestroy: new WeakMap(),
+            writableFinal: new WeakMap(),
+            writableDestroy: new WeakMap()
+        });
+    const addConcurrentStream = (concurrentStreams, stream, waitName)=>{
+        const weakMap = concurrentStreams[waitName];
+        if (!weakMap.has(stream)) weakMap.set(stream, []);
+        const promises = weakMap.get(stream);
+        const promise = createDeferred();
+        promises.push(promise);
+        const resolve = promise.resolve.bind(promise);
+        return {
+            resolve,
+            promises
+        };
+    };
+    const waitForConcurrentStreams = async ({ resolve, promises }, subprocess)=>{
+        resolve();
+        const [isSubprocessExit] = await Promise.race([
+            Promise.allSettled([
+                true,
+                subprocess
+            ]),
+            Promise.all([
+                false,
+                ...promises
+            ])
+        ]);
+        return !isSubprocessExit;
+    };
+    const iterateOnSubprocessStream = ({ subprocessStdout, subprocess, binary, shouldEncode, encoding, preserveNewlines })=>{
+        const controller = new AbortController();
+        stopReadingOnExit(subprocess, controller);
+        return iterateOnStream({
+            stream: subprocessStdout,
+            controller,
+            binary,
+            shouldEncode: !subprocessStdout.readableObjectMode && shouldEncode,
+            encoding,
+            shouldSplit: !subprocessStdout.readableObjectMode,
+            preserveNewlines
+        });
+    };
+    const stopReadingOnExit = async (subprocess, controller)=>{
+        try {
+            await subprocess;
+        } catch  {} finally{
+            controller.abort();
+        }
+    };
+    const iterateForResult = ({ stream, onStreamEnd, lines, encoding, stripFinalNewline, allMixed })=>{
+        const controller = new AbortController();
+        stopReadingOnStreamEnd(onStreamEnd, controller, stream);
+        const objectMode = stream.readableObjectMode && !allMixed;
+        return iterateOnStream({
+            stream,
+            controller,
+            binary: 'buffer' === encoding,
+            shouldEncode: !objectMode,
+            encoding,
+            shouldSplit: !objectMode && lines,
+            preserveNewlines: !stripFinalNewline
+        });
+    };
+    const stopReadingOnStreamEnd = async (onStreamEnd, controller, stream)=>{
+        try {
+            await onStreamEnd;
+        } catch  {
+            stream.destroy();
+        } finally{
+            controller.abort();
+        }
+    };
+    const iterateOnStream = ({ stream, controller, binary, shouldEncode, encoding, shouldSplit, preserveNewlines })=>{
+        const onStdoutChunk = (0, external_node_events_.on)(stream, 'data', {
+            signal: controller.signal,
+            highWaterMark: HIGH_WATER_MARK,
+            highWatermark: HIGH_WATER_MARK
+        });
+        return iterateOnData({
+            onStdoutChunk,
+            controller,
+            binary,
+            shouldEncode,
+            encoding,
+            shouldSplit,
+            preserveNewlines
+        });
+    };
+    const DEFAULT_OBJECT_HIGH_WATER_MARK = (0, external_node_stream_.getDefaultHighWaterMark)(true);
+    const HIGH_WATER_MARK = DEFAULT_OBJECT_HIGH_WATER_MARK;
+    const iterateOnData = async function*({ onStdoutChunk, controller, binary, shouldEncode, encoding, shouldSplit, preserveNewlines }) {
+        const generators = getGenerators({
+            binary,
+            shouldEncode,
+            encoding,
+            shouldSplit,
+            preserveNewlines
+        });
+        try {
+            for await (const [chunk] of onStdoutChunk)yield* transformChunkSync(chunk, generators, 0);
+        } catch (error) {
+            if (!controller.signal.aborted) throw error;
+        } finally{
+            yield* finalChunksSync(generators);
+        }
+    };
+    const getGenerators = ({ binary, shouldEncode, encoding, shouldSplit, preserveNewlines })=>[
+            getEncodingTransformGenerator(binary, encoding, !shouldEncode),
+            getSplitLinesGenerator(binary, preserveNewlines, !shouldSplit, {})
+        ].filter(Boolean);
+    const createIterable = (subprocess, encoding, { from, binary: binaryOption = false, preserveNewlines = false } = {})=>{
+        const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
+        const subprocessStdout = getFromStream(subprocess, from);
+        const onStdoutData = iterateOnSubprocessStream({
+            subprocessStdout,
+            subprocess,
+            binary,
+            shouldEncode: true,
+            encoding,
+            preserveNewlines
+        });
+        return iterateOnStdoutData(onStdoutData, subprocessStdout, subprocess);
+    };
+    const iterateOnStdoutData = async function*(onStdoutData, subprocessStdout, subprocess) {
+        try {
+            yield* onStdoutData;
+        } finally{
+            if (subprocessStdout.readable) subprocessStdout.destroy();
+            await subprocess;
+        }
+    };
+    const waitForStream = async (stream, fdNumber, streamInfo, { isSameDirection, stopOnExit = false } = {})=>{
+        const state = handleStdinDestroy(stream, streamInfo);
+        const abortController = new AbortController();
+        try {
+            await Promise.race([
+                ...stopOnExit ? [
+                    streamInfo.exitPromise
+                ] : [],
+                (0, external_node_stream_promises_namespaceObject.finished)(stream, {
+                    cleanup: true,
+                    signal: abortController.signal
+                })
+            ]);
+        } catch (error) {
+            if (!state.stdinCleanedUp) handleStreamError(error, fdNumber, streamInfo, isSameDirection);
+        } finally{
+            abortController.abort();
+        }
+    };
+    const handleStdinDestroy = (stream, { originalStreams, subprocess })=>{
+        const [originalStdin] = originalStreams;
+        const state = {
+            stdinCleanedUp: false
+        };
+        if (stream === originalStdin) spyOnStdinDestroy(stream, subprocess, state);
+        return state;
+    };
+    const spyOnStdinDestroy = (subprocessStdin, subprocess, state)=>{
+        const { _destroy } = subprocessStdin;
+        subprocessStdin._destroy = (...destroyArguments)=>{
+            setStdinCleanedUp(subprocess, state);
+            _destroy.call(subprocessStdin, ...destroyArguments);
+        };
+    };
+    const setStdinCleanedUp = ({ exitCode, signalCode }, state)=>{
+        if (null !== exitCode || null !== signalCode) state.stdinCleanedUp = true;
+    };
+    const handleStreamError = (error, fdNumber, streamInfo, isSameDirection)=>{
+        if (!shouldIgnoreStreamError(error, fdNumber, streamInfo, isSameDirection)) throw error;
+    };
+    const shouldIgnoreStreamError = (error, fdNumber, streamInfo, isSameDirection = true)=>{
+        if (streamInfo.propagating) return isStreamEpipe(error) || isStreamAbort(error);
+        streamInfo.propagating = true;
+        return isInputFileDescriptor(streamInfo, fdNumber) === isSameDirection ? isStreamEpipe(error) : isStreamAbort(error);
+    };
+    const isInputFileDescriptor = ({ fileDescriptors }, fdNumber)=>'all' !== fdNumber && 'input' === fileDescriptors[fdNumber].direction;
+    const isStreamAbort = (error)=>error?.code === 'ERR_STREAM_PREMATURE_CLOSE';
+    const isStreamEpipe = (error)=>error?.code === 'EPIPE';
+    const safeWaitForSubprocessStdin = async (subprocessStdin)=>{
+        if (void 0 === subprocessStdin) return;
+        try {
+            await waitForSubprocessStdin(subprocessStdin);
+        } catch  {}
+    };
+    const safeWaitForSubprocessStdout = async (subprocessStdout)=>{
+        if (void 0 === subprocessStdout) return;
+        try {
+            await waitForSubprocessStdout(subprocessStdout);
+        } catch  {}
+    };
+    const waitForSubprocessStdin = async (subprocessStdin)=>{
+        await (0, external_node_stream_promises_namespaceObject.finished)(subprocessStdin, {
+            cleanup: true,
+            readable: false,
+            writable: true
+        });
+    };
+    const waitForSubprocessStdout = async (subprocessStdout)=>{
+        await (0, external_node_stream_promises_namespaceObject.finished)(subprocessStdout, {
+            cleanup: true,
+            readable: true,
+            writable: false
+        });
+    };
+    const waitForSubprocess = async (subprocess, error)=>{
+        await subprocess;
+        if (error) throw error;
+    };
+    const destroyOtherStream = (stream, isOpen, error)=>{
+        if (error && !isStreamAbort(error)) stream.destroy(error);
+        else if (isOpen) stream.destroy();
+    };
+    const createReadable = ({ subprocess, concurrentStreams, encoding }, { from, binary: binaryOption = true, preserveNewlines = true } = {})=>{
+        const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
+        const { subprocessStdout, waitReadableDestroy } = getSubprocessStdout(subprocess, from, concurrentStreams);
+        const { readableEncoding, readableObjectMode, readableHighWaterMark } = getReadableOptions(subprocessStdout, binary);
+        const { read, onStdoutDataDone } = getReadableMethods({
+            subprocessStdout,
+            subprocess,
+            binary,
+            encoding,
+            preserveNewlines
+        });
+        const readable = new external_node_stream_.Readable({
+            read,
+            destroy: (0, external_node_util_.callbackify)(onReadableDestroy.bind(void 0, {
+                subprocessStdout,
+                subprocess,
+                waitReadableDestroy
+            })),
+            highWaterMark: readableHighWaterMark,
+            objectMode: readableObjectMode,
+            encoding: readableEncoding
+        });
+        onStdoutFinished({
+            subprocessStdout,
+            onStdoutDataDone,
+            readable,
+            subprocess
+        });
+        return readable;
+    };
+    const getSubprocessStdout = (subprocess, from, concurrentStreams)=>{
+        const subprocessStdout = getFromStream(subprocess, from);
+        const waitReadableDestroy = addConcurrentStream(concurrentStreams, subprocessStdout, 'readableDestroy');
+        return {
+            subprocessStdout,
+            waitReadableDestroy
+        };
+    };
+    const getReadableOptions = ({ readableEncoding, readableObjectMode, readableHighWaterMark }, binary)=>binary ? {
+            readableEncoding,
+            readableObjectMode,
+            readableHighWaterMark
+        } : {
+            readableEncoding,
+            readableObjectMode: true,
+            readableHighWaterMark: DEFAULT_OBJECT_HIGH_WATER_MARK
+        };
+    const getReadableMethods = ({ subprocessStdout, subprocess, binary, encoding, preserveNewlines })=>{
+        const onStdoutDataDone = createDeferred();
+        const onStdoutData = iterateOnSubprocessStream({
+            subprocessStdout,
+            subprocess,
+            binary,
+            shouldEncode: !binary,
+            encoding,
+            preserveNewlines
+        });
+        return {
+            read () {
+                onRead(this, onStdoutData, onStdoutDataDone);
+            },
+            onStdoutDataDone
+        };
+    };
+    const onRead = async (readable, onStdoutData, onStdoutDataDone)=>{
+        try {
+            const { value, done } = await onStdoutData.next();
+            if (done) onStdoutDataDone.resolve();
+            else readable.push(value);
+        } catch  {}
+    };
+    const onStdoutFinished = async ({ subprocessStdout, onStdoutDataDone, readable, subprocess, subprocessStdin })=>{
+        try {
+            await waitForSubprocessStdout(subprocessStdout);
+            await subprocess;
+            await safeWaitForSubprocessStdin(subprocessStdin);
+            await onStdoutDataDone;
+            if (readable.readable) readable.push(null);
+        } catch (error) {
+            await safeWaitForSubprocessStdin(subprocessStdin);
+            destroyOtherReadable(readable, await getPrematureCloseError(subprocess, error));
+        }
+    };
+    const getPrematureCloseError = async (subprocess, error)=>{
+        if ('ERR_STREAM_PREMATURE_CLOSE' !== error.code) return error;
+        try {
+            await subprocess;
+        } catch (subprocessError) {
+            return subprocessError;
+        }
+        return error;
+    };
+    const onReadableDestroy = async ({ subprocessStdout, subprocess, waitReadableDestroy }, error)=>{
+        if (!await waitForConcurrentStreams(waitReadableDestroy, subprocess)) return;
+        destroyOtherReadable(subprocessStdout, error);
+        await waitForSubprocess(subprocess, error);
+    };
+    const destroyOtherReadable = (stream, error)=>{
+        destroyOtherStream(stream, stream.readable, error);
+    };
+    const createReadableStream = (subprocess, readableOptions)=>external_node_stream_.Readable.toWeb(subprocess.readable(readableOptions));
+    const createWritableStream = (subprocess, writableOptions)=>external_node_stream_.Writable.toWeb(subprocess.writable(writableOptions));
+    const createTransformStream = (subprocess, duplexOptions)=>external_node_stream_.Duplex.toWeb(subprocess.duplex(duplexOptions));
     const normalizePipeArguments = ({ source, sourcePromise, boundOptions, createNested }, ...pipeArguments)=>{
         const startTime = getStartTime();
         const { destination, destinationStream, destinationError, from, unpipeSignal } = getDestinationStream(boundOptions, createNested, pipeArguments);
@@ -25315,9 +25575,11 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             }
         });
         const { destination, ...normalizedInfo } = normalizePipeArguments(sourceInfo, ...pipeArguments);
+        const pipeFailureController = new AbortController();
         const promise = handlePipePromise({
             ...normalizedInfo,
-            destination
+            destination,
+            pipeFailureController
         });
         promise.pipe = pipeToSubprocess.bind(void 0, {
             ...sourceInfo,
@@ -25325,21 +25587,147 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             sourcePromise: promise,
             boundOptions: {}
         });
+        forwardDestinationMethods(promise, destination, pipeFailureController.signal);
         return promise;
     };
-    const handlePipePromise = async ({ sourcePromise, sourceStream, sourceOptions, sourceError, destination, destinationStream, destinationError, unpipeSignal, fileDescriptors, startTime })=>{
-        const subprocessPromises = getSubprocessPromises(sourcePromise, destination);
-        handlePipeArgumentsError({
-            sourceStream,
-            sourceError,
-            destinationStream,
-            destinationError,
-            fileDescriptors,
-            sourceOptions,
-            startTime
+    const forwardDestinationMethods = (promise, destination, pipeFailureSignal)=>{
+        if (void 0 === destination) return;
+        forwardReadableMethods(promise, destination);
+        forwardIpcMethods(promise, destination, pipeFailureSignal);
+    };
+    const forwardReadableMethods = (promise, destination)=>{
+        const subprocessOptions = SUBPROCESS_OPTIONS.get(destination);
+        SUBPROCESS_OPTIONS.set(promise, subprocessOptions);
+        promise.stdio = destination.stdio;
+        promise.all = destination.all;
+        const { options: { encoding } } = subprocessOptions;
+        const concurrentStreams = initializeConcurrentStreams();
+        promise[Symbol.asyncIterator] = createIterable.bind(void 0, promise, encoding, {});
+        promise.iterable = createIterable.bind(void 0, promise, encoding);
+        promise.readable = createPipeReadable.bind(void 0, promise, {
+            subprocess: promise,
+            concurrentStreams,
+            encoding
         });
+        promise.readableStream = createReadableStream.bind(void 0, promise);
+        forwardAll(promise, destination);
+    };
+    const forwardAll = (promise, destination)=>{
+        if (void 0 === destination.all) {
+            promise.all = void 0;
+            return;
+        }
+        Object.defineProperty(promise, 'all', {
+            get () {
+                setAllProperty(promise, destination.all);
+                const all = promise.readable({
+                    from: 'all'
+                });
+                setAllProperty(promise, all);
+                return all;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    };
+    const setAllProperty = (promise, value)=>{
+        Object.defineProperty(promise, 'all', {
+            value,
+            writable: true,
+            enumerable: true,
+            configurable: true
+        });
+    };
+    const createPipeReadable = (promise, readableOptions, ...arguments_)=>{
+        const readable = createReadable(readableOptions, ...arguments_);
+        destroyOnPipeFailure(promise, readable);
+        return readable;
+    };
+    const destroyOnPipeFailure = async (promise, readable)=>{
+        try {
+            await promise;
+        } catch (error) {
+            readable.destroy(error);
+        }
+    };
+    const forwardIpcMethods = (promise, destination, pipeFailureSignal)=>{
+        promise.sendMessage = destination.sendMessage;
+        promise.getOneMessage = getOnePipeMessage.bind(void 0, destination, pipeFailureSignal);
+        promise.getEachMessage = getEachPipeMessage.bind(void 0, promise, destination, pipeFailureSignal);
+    };
+    const getOnePipeMessage = (destination, pipeFailureSignal, ...arguments_)=>{
+        const controller = new AbortController();
+        const messagePromise = destination.getOneMessage(...addPipeOptions(arguments_, controller.signal, internalGetOneMessageOptions));
+        return waitForOnePipeMessage(pipeFailureSignal, messagePromise, controller);
+    };
+    const waitForOnePipeMessage = async (pipeFailureSignal, messagePromise, controller)=>{
+        try {
+            return await Promise.race([
+                messagePromise,
+                getSignalRejection(pipeFailureSignal, controller.signal)
+            ]);
+        } finally{
+            controller.abort();
+        }
+    };
+    const getSignalRejection = (signal, listenerSignal)=>new Promise((_, reject)=>{
+            if (signal.aborted) return void reject(signal.reason);
+            signal.addEventListener('abort', ()=>{
+                reject(signal.reason);
+            }, {
+                once: true,
+                signal: listenerSignal
+            });
+        });
+    const getEachPipeMessage = (promise, destination, pipeFailureSignal, ...arguments_)=>{
+        const controller = new AbortController();
+        const iterator = destination.getEachMessage(...addPipeOptions(arguments_, controller.signal, internalGetEachMessageOptions));
+        abortOnSignal(pipeFailureSignal, controller);
+        return iterateOnPipeMessages(promise, iterator, controller);
+    };
+    const iterateOnPipeMessages = async function*(promise, iterator, controller) {
+        try {
+            yield* iterator;
+        } finally{
+            controller.abort();
+            await promise;
+        }
+    };
+    const addPipeOptions = (arguments_, signal, internalOptionsSymbol)=>{
+        if (null === arguments_[0]) return arguments_;
+        const [options] = arguments_;
+        return [
+            {
+                ...options,
+                [internalOptionsSymbol]: {
+                    signal,
+                    shouldAwait: false
+                }
+            }
+        ];
+    };
+    const abortOnSignal = (signal, controller)=>{
+        if (signal.aborted) return void controller.abort();
+        signal.addEventListener('abort', ()=>{
+            controller.abort();
+        }, {
+            once: true,
+            signal: controller.signal
+        });
+    };
+    const handlePipePromise = async ({ sourcePromise, sourceStream, sourceOptions, sourceError, destination, destinationStream, destinationError, unpipeSignal, fileDescriptors, startTime, pipeFailureController })=>{
         const maxListenersController = new AbortController();
         try {
+            const subprocessPromises = getSubprocessPromises(sourcePromise, destination);
+            handlePipeArgumentsError({
+                sourceStream,
+                sourceError,
+                destinationStream,
+                destinationError,
+                fileDescriptors,
+                sourceOptions,
+                startTime
+            });
             const mergedStream = pipeSubprocessStream(sourceStream, destinationStream, maxListenersController);
             return await Promise.race([
                 waitForBothSubprocesses(subprocessPromises),
@@ -25351,6 +25739,9 @@ Instead, \`yield\` should either be called with a value, or not be called at all
                     startTime
                 })
             ]);
+        } catch (error) {
+            pipeFailureController.abort(error);
+            throw error;
         } finally{
             maxListenersController.abort();
         }
@@ -25478,87 +25869,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         getFinalChunk: getFinalStringChunk,
         finalize: getContentsProperty
     };
-    const iterateOnSubprocessStream = ({ subprocessStdout, subprocess, binary, shouldEncode, encoding, preserveNewlines })=>{
-        const controller = new AbortController();
-        stopReadingOnExit(subprocess, controller);
-        return iterateOnStream({
-            stream: subprocessStdout,
-            controller,
-            binary,
-            shouldEncode: !subprocessStdout.readableObjectMode && shouldEncode,
-            encoding,
-            shouldSplit: !subprocessStdout.readableObjectMode,
-            preserveNewlines
-        });
-    };
-    const stopReadingOnExit = async (subprocess, controller)=>{
-        try {
-            await subprocess;
-        } catch  {} finally{
-            controller.abort();
-        }
-    };
-    const iterateForResult = ({ stream, onStreamEnd, lines, encoding, stripFinalNewline, allMixed })=>{
-        const controller = new AbortController();
-        stopReadingOnStreamEnd(onStreamEnd, controller, stream);
-        const objectMode = stream.readableObjectMode && !allMixed;
-        return iterateOnStream({
-            stream,
-            controller,
-            binary: 'buffer' === encoding,
-            shouldEncode: !objectMode,
-            encoding,
-            shouldSplit: !objectMode && lines,
-            preserveNewlines: !stripFinalNewline
-        });
-    };
-    const stopReadingOnStreamEnd = async (onStreamEnd, controller, stream)=>{
-        try {
-            await onStreamEnd;
-        } catch  {
-            stream.destroy();
-        } finally{
-            controller.abort();
-        }
-    };
-    const iterateOnStream = ({ stream, controller, binary, shouldEncode, encoding, shouldSplit, preserveNewlines })=>{
-        const onStdoutChunk = (0, external_node_events_.on)(stream, 'data', {
-            signal: controller.signal,
-            highWaterMark: HIGH_WATER_MARK,
-            highWatermark: HIGH_WATER_MARK
-        });
-        return iterateOnData({
-            onStdoutChunk,
-            controller,
-            binary,
-            shouldEncode,
-            encoding,
-            shouldSplit,
-            preserveNewlines
-        });
-    };
-    const DEFAULT_OBJECT_HIGH_WATER_MARK = (0, external_node_stream_.getDefaultHighWaterMark)(true);
-    const HIGH_WATER_MARK = DEFAULT_OBJECT_HIGH_WATER_MARK;
-    const iterateOnData = async function*({ onStdoutChunk, controller, binary, shouldEncode, encoding, shouldSplit, preserveNewlines }) {
-        const generators = getGenerators({
-            binary,
-            shouldEncode,
-            encoding,
-            shouldSplit,
-            preserveNewlines
-        });
-        try {
-            for await (const [chunk] of onStdoutChunk)yield* transformChunkSync(chunk, generators, 0);
-        } catch (error) {
-            if (!controller.signal.aborted) throw error;
-        } finally{
-            yield* finalChunksSync(generators);
-        }
-    };
-    const getGenerators = ({ binary, shouldEncode, encoding, shouldSplit, preserveNewlines })=>[
-            getEncodingTransformGenerator(binary, encoding, !shouldEncode),
-            getSplitLinesGenerator(binary, preserveNewlines, !shouldSplit, {})
-        ].filter(Boolean);
     const getStreamOutput = async ({ stream, onStreamEnd, fdNumber, encoding, buffer, maxBuffer, lines, allMixed, stripFinalNewline, verboseInfo, streamInfo })=>{
         const logPromise = logOutputAsync({
             stream,
@@ -25646,53 +25956,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         }
     };
     const handleBufferedData = ({ bufferedData })=>isArrayBuffer(bufferedData) ? new Uint8Array(bufferedData) : bufferedData;
-    const waitForStream = async (stream, fdNumber, streamInfo, { isSameDirection, stopOnExit = false } = {})=>{
-        const state = handleStdinDestroy(stream, streamInfo);
-        const abortController = new AbortController();
-        try {
-            await Promise.race([
-                ...stopOnExit ? [
-                    streamInfo.exitPromise
-                ] : [],
-                (0, external_node_stream_promises_namespaceObject.finished)(stream, {
-                    cleanup: true,
-                    signal: abortController.signal
-                })
-            ]);
-        } catch (error) {
-            if (!state.stdinCleanedUp) handleStreamError(error, fdNumber, streamInfo, isSameDirection);
-        } finally{
-            abortController.abort();
-        }
-    };
-    const handleStdinDestroy = (stream, { originalStreams: [originalStdin], subprocess })=>{
-        const state = {
-            stdinCleanedUp: false
-        };
-        if (stream === originalStdin) spyOnStdinDestroy(stream, subprocess, state);
-        return state;
-    };
-    const spyOnStdinDestroy = (subprocessStdin, subprocess, state)=>{
-        const { _destroy } = subprocessStdin;
-        subprocessStdin._destroy = (...destroyArguments)=>{
-            setStdinCleanedUp(subprocess, state);
-            _destroy.call(subprocessStdin, ...destroyArguments);
-        };
-    };
-    const setStdinCleanedUp = ({ exitCode, signalCode }, state)=>{
-        if (null !== exitCode || null !== signalCode) state.stdinCleanedUp = true;
-    };
-    const handleStreamError = (error, fdNumber, streamInfo, isSameDirection)=>{
-        if (!shouldIgnoreStreamError(error, fdNumber, streamInfo, isSameDirection)) throw error;
-    };
-    const shouldIgnoreStreamError = (error, fdNumber, streamInfo, isSameDirection = true)=>{
-        if (streamInfo.propagating) return isStreamEpipe(error) || isStreamAbort(error);
-        streamInfo.propagating = true;
-        return isInputFileDescriptor(streamInfo, fdNumber) === isSameDirection ? isStreamEpipe(error) : isStreamAbort(error);
-    };
-    const isInputFileDescriptor = ({ fileDescriptors }, fdNumber)=>'all' !== fdNumber && 'input' === fileDescriptors[fdNumber].direction;
-    const isStreamAbort = (error)=>error?.code === 'ERR_STREAM_PREMATURE_CLOSE';
-    const isStreamEpipe = (error)=>error?.code === 'EPIPE';
     const waitForStdioStreams = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline, verboseInfo, streamInfo })=>subprocess.stdio.map((stream, fdNumber)=>waitForSubprocessStream({
                 stream,
                 fdNumber,
@@ -25731,18 +25994,18 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             stdout,
             stderr
         ].filter(Boolean)) : void 0;
-    const waitForAllStream = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline, verboseInfo, streamInfo })=>waitForSubprocessStream({
-            ...getAllStream(subprocess, buffer),
+    const waitForAllStream = ({ subprocess, all, encoding, buffer, maxBuffer, lines, stripFinalNewline, verboseInfo, streamInfo })=>waitForSubprocessStream({
+            ...getAllStream(subprocess, all, buffer),
             fdNumber: 'all',
             encoding,
             maxBuffer: maxBuffer[1] + maxBuffer[2],
             lines: lines[1] || lines[2],
-            allMixed: getAllMixed(subprocess),
+            allMixed: getAllMixed(subprocess, all),
             stripFinalNewline,
             verboseInfo,
             streamInfo
         });
-    const getAllStream = ({ stdout, stderr, all }, [, bufferStdout, bufferStderr])=>{
+    const getAllStream = ({ stdout, stderr }, all, [, bufferStdout, bufferStderr])=>{
         const buffer = bufferStdout || bufferStderr;
         if (!buffer) return {
             stream: all,
@@ -25761,7 +26024,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             buffer
         };
     };
-    const getAllMixed = ({ all, stdout, stderr })=>all && stdout && stderr && stdout.readableObjectMode !== stderr.readableObjectMode;
+    const getAllMixed = ({ stdout, stderr }, all)=>all && stdout && stderr && stdout.readableObjectMode !== stderr.readableObjectMode;
     const shouldLogIpc = (verboseInfo)=>isFullVerbose(verboseInfo, 'ipc');
     const logIpcOutput = (message, verboseInfo)=>{
         const verboseMessage = serializeVerboseMessage(message);
@@ -25799,7 +26062,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         ]);
         return ipcOutput;
     };
-    const waitForSubprocessResult = async ({ subprocess, options: { encoding, buffer, maxBuffer, lines, timeoutDuration: timeout, cancelSignal, gracefulCancel, forceKillAfterDelay, stripFinalNewline, ipc, ipcInput }, context, verboseInfo, fileDescriptors, originalStreams, onInternalError, controller })=>{
+    const waitForSubprocessResult = async ({ subprocess, kill, all, options: { encoding, buffer, maxBuffer, lines, timeoutDuration: timeout, cancelSignal, gracefulCancel, forceKillAfterDelay, stripFinalNewline, ipc, ipcInput }, context, verboseInfo, fileDescriptors, originalStreams, onInternalError, controller })=>{
         const exitPromise = waitForExit(subprocess, context);
         const streamInfo = {
             originalStreams,
@@ -25820,6 +26083,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         });
         const allPromise = waitForAllStream({
             subprocess,
+            all,
             encoding,
             buffer,
             maxBuffer,
@@ -25847,15 +26111,15 @@ Instead, \`yield\` should either be called with a value, or not be called at all
                     Promise.all(stdioPromises),
                     allPromise,
                     ipcOutputPromise,
-                    sendIpcInput(subprocess, ipcInput),
+                    sendIpcInput(subprocess, ipcInput, ipc),
                     ...originalPromises,
                     ...customStreamsEndPromises
                 ]),
                 onInternalError,
                 throwOnSubprocessError(subprocess, controller),
-                ...throwOnTimeout(subprocess, timeout, context, controller),
+                ...throwOnTimeout(kill, timeout, context, controller),
                 ...throwOnCancel({
-                    subprocess,
+                    kill,
                     cancelSignal,
                     gracefulCancel,
                     context,
@@ -25863,6 +26127,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
                 }),
                 ...throwOnGracefulCancel({
                     subprocess,
+                    kill,
                     cancelSignal,
                     gracefulCancel,
                     forceKillAfterDelay,
@@ -25898,163 +26163,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         });
         throw error;
     };
-    const initializeConcurrentStreams = ()=>({
-            readableDestroy: new WeakMap(),
-            writableFinal: new WeakMap(),
-            writableDestroy: new WeakMap()
-        });
-    const addConcurrentStream = (concurrentStreams, stream, waitName)=>{
-        const weakMap = concurrentStreams[waitName];
-        if (!weakMap.has(stream)) weakMap.set(stream, []);
-        const promises = weakMap.get(stream);
-        const promise = createDeferred();
-        promises.push(promise);
-        const resolve = promise.resolve.bind(promise);
-        return {
-            resolve,
-            promises
-        };
-    };
-    const waitForConcurrentStreams = async ({ resolve, promises }, subprocess)=>{
-        resolve();
-        const [isSubprocessExit] = await Promise.race([
-            Promise.allSettled([
-                true,
-                subprocess
-            ]),
-            Promise.all([
-                false,
-                ...promises
-            ])
-        ]);
-        return !isSubprocessExit;
-    };
-    const safeWaitForSubprocessStdin = async (subprocessStdin)=>{
-        if (void 0 === subprocessStdin) return;
-        try {
-            await waitForSubprocessStdin(subprocessStdin);
-        } catch  {}
-    };
-    const safeWaitForSubprocessStdout = async (subprocessStdout)=>{
-        if (void 0 === subprocessStdout) return;
-        try {
-            await waitForSubprocessStdout(subprocessStdout);
-        } catch  {}
-    };
-    const waitForSubprocessStdin = async (subprocessStdin)=>{
-        await (0, external_node_stream_promises_namespaceObject.finished)(subprocessStdin, {
-            cleanup: true,
-            readable: false,
-            writable: true
-        });
-    };
-    const waitForSubprocessStdout = async (subprocessStdout)=>{
-        await (0, external_node_stream_promises_namespaceObject.finished)(subprocessStdout, {
-            cleanup: true,
-            readable: true,
-            writable: false
-        });
-    };
-    const waitForSubprocess = async (subprocess, error)=>{
-        await subprocess;
-        if (error) throw error;
-    };
-    const destroyOtherStream = (stream, isOpen, error)=>{
-        if (error && !isStreamAbort(error)) stream.destroy(error);
-        else if (isOpen) stream.destroy();
-    };
-    const createReadable = ({ subprocess, concurrentStreams, encoding }, { from, binary: binaryOption = true, preserveNewlines = true } = {})=>{
-        const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
-        const { subprocessStdout, waitReadableDestroy } = getSubprocessStdout(subprocess, from, concurrentStreams);
-        const { readableEncoding, readableObjectMode, readableHighWaterMark } = getReadableOptions(subprocessStdout, binary);
-        const { read, onStdoutDataDone } = getReadableMethods({
-            subprocessStdout,
-            subprocess,
-            binary,
-            encoding,
-            preserveNewlines
-        });
-        const readable = new external_node_stream_.Readable({
-            read,
-            destroy: (0, external_node_util_.callbackify)(onReadableDestroy.bind(void 0, {
-                subprocessStdout,
-                subprocess,
-                waitReadableDestroy
-            })),
-            highWaterMark: readableHighWaterMark,
-            objectMode: readableObjectMode,
-            encoding: readableEncoding
-        });
-        onStdoutFinished({
-            subprocessStdout,
-            onStdoutDataDone,
-            readable,
-            subprocess
-        });
-        return readable;
-    };
-    const getSubprocessStdout = (subprocess, from, concurrentStreams)=>{
-        const subprocessStdout = getFromStream(subprocess, from);
-        const waitReadableDestroy = addConcurrentStream(concurrentStreams, subprocessStdout, 'readableDestroy');
-        return {
-            subprocessStdout,
-            waitReadableDestroy
-        };
-    };
-    const getReadableOptions = ({ readableEncoding, readableObjectMode, readableHighWaterMark }, binary)=>binary ? {
-            readableEncoding,
-            readableObjectMode,
-            readableHighWaterMark
-        } : {
-            readableEncoding,
-            readableObjectMode: true,
-            readableHighWaterMark: DEFAULT_OBJECT_HIGH_WATER_MARK
-        };
-    const getReadableMethods = ({ subprocessStdout, subprocess, binary, encoding, preserveNewlines })=>{
-        const onStdoutDataDone = createDeferred();
-        const onStdoutData = iterateOnSubprocessStream({
-            subprocessStdout,
-            subprocess,
-            binary,
-            shouldEncode: !binary,
-            encoding,
-            preserveNewlines
-        });
-        return {
-            read () {
-                onRead(this, onStdoutData, onStdoutDataDone);
-            },
-            onStdoutDataDone
-        };
-    };
-    const onRead = async (readable, onStdoutData, onStdoutDataDone)=>{
-        try {
-            const { value, done } = await onStdoutData.next();
-            if (done) onStdoutDataDone.resolve();
-            else readable.push(value);
-        } catch  {}
-    };
-    const onStdoutFinished = async ({ subprocessStdout, onStdoutDataDone, readable, subprocess, subprocessStdin })=>{
-        try {
-            await waitForSubprocessStdout(subprocessStdout);
-            await subprocess;
-            await safeWaitForSubprocessStdin(subprocessStdin);
-            await onStdoutDataDone;
-            if (readable.readable) readable.push(null);
-        } catch (error) {
-            await safeWaitForSubprocessStdin(subprocessStdin);
-            destroyOtherReadable(readable, error);
-        }
-    };
-    const onReadableDestroy = async ({ subprocessStdout, subprocess, waitReadableDestroy }, error)=>{
-        if (await waitForConcurrentStreams(waitReadableDestroy, subprocess)) {
-            destroyOtherReadable(subprocessStdout, error);
-            await waitForSubprocess(subprocess, error);
-        }
-    };
-    const destroyOtherReadable = (stream, error)=>{
-        destroyOtherStream(stream, stream.readable, error);
-    };
     const createWritable = ({ subprocess, concurrentStreams }, { to } = {})=>{
         const { subprocessStdin, waitWritableFinal, waitWritableDestroy } = getSubprocessStdin(subprocess, to, concurrentStreams);
         const writable = new external_node_stream_.Writable({
@@ -26068,7 +26176,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             highWaterMark: subprocessStdin.writableHighWaterMark,
             objectMode: subprocessStdin.writableObjectMode
         });
-        onStdinFinished(subprocessStdin, writable);
+        onStdinFinished(subprocessStdin, writable, void 0, subprocess);
         return writable;
     };
     const getSubprocessStdin = (subprocess, to, concurrentStreams)=>{
@@ -26090,20 +26198,30 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         else subprocessStdin.once('drain', done);
     };
     const onWritableFinal = async (subprocessStdin, subprocess, waitWritableFinal)=>{
-        if (await waitForConcurrentStreams(waitWritableFinal, subprocess)) {
-            if (subprocessStdin.writable) subprocessStdin.end();
-            await subprocess;
-        }
+        if (!await waitForConcurrentStreams(waitWritableFinal, subprocess)) return;
+        if (subprocessStdin.writable) subprocessStdin.end();
+        await subprocess;
     };
-    const onStdinFinished = async (subprocessStdin, writable, subprocessStdout)=>{
+    const onStdinFinished = async (subprocessStdin, writable, subprocessStdout, subprocess)=>{
         try {
             await waitForSubprocessStdin(subprocessStdin);
+            await subprocess;
             if (writable.writable) writable.end();
         } catch (error) {
             await safeWaitForSubprocessStdout(subprocessStdout);
-            destroyOtherWritable(writable, error);
+            destroyOtherWritable(writable, await getSubprocessError(subprocess, error));
         }
     };
+    const getSubprocessError = async (subprocess, error)=>{
+        if (!shouldUseSubprocessError(error)) return error;
+        try {
+            await subprocess;
+        } catch (subprocessError) {
+            return subprocessError;
+        }
+        return error;
+    };
+    const shouldUseSubprocessError = (error)=>void 0 === error || isStreamAbort(error);
     const onWritableDestroy = async ({ subprocessStdin, subprocess, waitWritableFinal, waitWritableDestroy }, error)=>{
         await waitForConcurrentStreams(waitWritableFinal, subprocess);
         if (await waitForConcurrentStreams(waitWritableDestroy, subprocess)) {
@@ -26150,7 +26268,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             subprocess,
             subprocessStdin
         });
-        onStdinFinished(subprocessStdin, duplex, subprocessStdout);
+        onStdinFinished(subprocessStdin, duplex, subprocessStdout, subprocess);
         return duplex;
     };
     const onDuplexDestroy = async ({ subprocessStdout, subprocessStdin, subprocess, waitReadableDestroy, waitWritableFinal, waitWritableDestroy }, error)=>{
@@ -26168,27 +26286,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             }, error)
         ]);
     };
-    const createIterable = (subprocess, encoding, { from, binary: binaryOption = false, preserveNewlines = false } = {})=>{
-        const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
-        const subprocessStdout = getFromStream(subprocess, from);
-        const onStdoutData = iterateOnSubprocessStream({
-            subprocessStdout,
-            subprocess,
-            binary,
-            shouldEncode: true,
-            encoding,
-            preserveNewlines
-        });
-        return iterateOnStdoutData(onStdoutData, subprocessStdout, subprocess);
-    };
-    const iterateOnStdoutData = async function*(onStdoutData, subprocessStdout, subprocess) {
-        try {
-            yield* onStdoutData;
-        } finally{
-            if (subprocessStdout.readable) subprocessStdout.destroy();
-            await subprocess;
-        }
-    };
     const addConvertedStreams = (subprocess, { encoding })=>{
         const concurrentStreams = initializeConcurrentStreams();
         subprocess.readable = createReadable.bind(void 0, {
@@ -26205,30 +26302,16 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             concurrentStreams,
             encoding
         });
+        subprocess.readableStream = createReadableStream.bind(void 0, subprocess);
+        subprocess.writableStream = createWritableStream.bind(void 0, subprocess);
+        subprocess.transformStream = createTransformStream.bind(void 0, subprocess);
         subprocess.iterable = createIterable.bind(void 0, subprocess, encoding);
         subprocess[Symbol.asyncIterator] = createIterable.bind(void 0, subprocess, encoding, {});
     };
-    const mergePromise = (subprocess, promise)=>{
-        for (const [property, descriptor] of descriptors){
-            const value = descriptor.value.bind(promise);
-            Reflect.defineProperty(subprocess, property, {
-                ...descriptor,
-                value
-            });
-        }
-    };
-    const nativePromisePrototype = (async ()=>{})().constructor.prototype;
-    const descriptors = [
-        'then',
-        'catch',
-        'finally'
-    ].map((property)=>[
-            property,
-            Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property)
-        ]);
+    const mergePromise = (promise, properties)=>Object.assign(promise, properties);
     const execaCoreAsync = (rawFile, rawArguments, rawOptions, createNested)=>{
         const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleAsyncArguments(rawFile, rawArguments, rawOptions);
-        const { subprocess, promise } = spawnSubprocessAsync({
+        const { subprocess: nodeChildProcess, promise, kill, all, convertedStreams } = spawnSubprocessAsync({
             file,
             commandArguments,
             options,
@@ -26238,13 +26321,20 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             escapedCommand,
             fileDescriptors
         });
+        const subprocess = getSubprocessPromise({
+            promise,
+            nodeChildProcess,
+            kill,
+            all,
+            convertedStreams,
+            options
+        });
         subprocess.pipe = pipeToSubprocess.bind(void 0, {
             source: subprocess,
             sourcePromise: promise,
             boundOptions: {},
             createNested
         });
-        mergePromise(subprocess, promise);
         SUBPROCESS_OPTIONS.set(subprocess, {
             options,
             fileDescriptors
@@ -26277,7 +26367,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     const spawnSubprocessAsync = ({ file, commandArguments, options, startTime, verboseInfo, command, escapedCommand, fileDescriptors })=>{
         let subprocess;
         try {
-            subprocess = (0, external_node_child_process_namespaceObject.spawn)(...concatenateShell(file, commandArguments, options));
+            subprocess = (0, external_node_child_process_namespaceObject.spawn)(...concatenateShell(file, commandArguments, getSpawnOptions(options)));
         } catch (error) {
             return handleEarlyError({
                 error,
@@ -26295,21 +26385,22 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             ...subprocess.stdio
         ];
         pipeOutputAsync(subprocess, fileDescriptors, controller);
-        cleanupOnExit(subprocess, options, controller);
+        setIpcSubprocessOptions(subprocess, options);
         const context = {};
         const onInternalError = createDeferred();
-        subprocess.kill = subprocessKill.bind(void 0, {
-            kill: subprocess.kill.bind(subprocess),
+        const kill = subprocessKill.bind(void 0, {
+            kill: getKillFunction(subprocess, options),
             options,
             onInternalError,
             context,
             controller
         });
-        subprocess.all = makeAllStream(subprocess, options);
-        addConvertedStreams(subprocess, options);
-        addIpcMethods(subprocess, options);
+        cleanupOnExit(kill, options, controller);
+        const all = makeAllStream(subprocess, options);
         const promise = handlePromise({
             subprocess,
+            kill,
+            all,
             options,
             startTime,
             verboseInfo,
@@ -26323,12 +26414,34 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         });
         return {
             subprocess,
-            promise
+            promise,
+            kill,
+            all
         };
     };
-    const handlePromise = async ({ subprocess, options, startTime, verboseInfo, fileDescriptors, originalStreams, command, escapedCommand, context, onInternalError, controller })=>{
+    const getSubprocessPromise = ({ promise, nodeChildProcess, kill, all, convertedStreams, options })=>{
+        const subprocess = mergePromise(promise, getSubprocessProperties(nodeChildProcess, all));
+        subprocess.kill = kill ?? subprocess.kill;
+        if (void 0 === convertedStreams) addConvertedStreams(subprocess, options);
+        else Object.assign(subprocess, convertedStreams);
+        addIpcMethods(subprocess, nodeChildProcess, options);
+        return subprocess;
+    };
+    const getSubprocessProperties = (nodeChildProcess, all)=>({
+            nodeChildProcess,
+            pid: nodeChildProcess.pid,
+            stdin: nodeChildProcess.stdin,
+            stdout: nodeChildProcess.stdout,
+            stderr: nodeChildProcess.stderr,
+            stdio: nodeChildProcess.stdio,
+            all,
+            kill: nodeChildProcess.kill.bind(nodeChildProcess)
+        });
+    const handlePromise = async ({ subprocess, kill, all: allStream, options, startTime, verboseInfo, fileDescriptors, originalStreams, command, escapedCommand, context, onInternalError, controller })=>{
         const [errorInfo, [exitCode, signal], stdioResults, allResult, ipcOutput] = await waitForSubprocessResult({
             subprocess,
+            kill,
+            all: allStream,
             options,
             context,
             verboseInfo,
@@ -26383,13 +26496,17 @@ Instead, \`yield\` should either be called with a value, or not be called at all
             startTime
         });
     const mergeOptions = (boundOptions, options)=>{
-        const newOptions = Object.fromEntries(Object.entries(options).map(([optionName, optionValue])=>[
+        const safeBoundOptions = {
+            __proto__: null,
+            ...boundOptions
+        };
+        const mergedOptions = Object.fromEntries(Object.entries(options).map(([optionName, optionValue])=>[
                 optionName,
-                mergeOption(optionName, boundOptions[optionName], optionValue)
+                mergeOption(optionName, safeBoundOptions[optionName], optionValue)
             ]));
         return {
-            ...boundOptions,
-            ...newOptions
+            ...safeBoundOptions,
+            ...mergedOptions
         };
     };
     const mergeOption = (optionName, boundOptionValue, optionValue)=>{
@@ -26433,44 +26550,16 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         ];
         const [initialFile, initialArguments, initialOptions] = normalizeParameters(...callArguments);
         const mergedOptions = mergeOptions(mergeOptions(deepOptions, boundOptions), initialOptions);
-        const { file = initialFile, commandArguments = initialArguments, options = mergedOptions, isSync = false } = mapArguments({
-            file: initialFile,
-            commandArguments: initialArguments,
+        const { options = mergedOptions, isSync = false } = mapArguments({
             options: mergedOptions
         });
         return {
-            file,
-            commandArguments,
+            file: initialFile,
+            commandArguments: initialArguments,
             options,
             isSync
         };
     };
-    const mapCommandAsync = ({ file, commandArguments })=>parseCommand(file, commandArguments);
-    const mapCommandSync = ({ file, commandArguments })=>({
-            ...parseCommand(file, commandArguments),
-            isSync: true
-        });
-    const parseCommand = (command, unusedArguments)=>{
-        if (unusedArguments.length > 0) throw new TypeError(`The command and its arguments must be passed as a single string: ${command} ${unusedArguments}.`);
-        const [file, ...commandArguments] = parseCommandString(command);
-        return {
-            file,
-            commandArguments
-        };
-    };
-    const parseCommandString = (command)=>{
-        if ('string' != typeof command) throw new TypeError(`The command must be a string: ${String(command)}.`);
-        const trimmedCommand = command.trim();
-        if ('' === trimmedCommand) return [];
-        const tokens = [];
-        for (const token of trimmedCommand.split(SPACES_REGEXP)){
-            const previousToken = tokens.at(-1);
-            if (previousToken && previousToken.endsWith('\\')) tokens[tokens.length - 1] = `${previousToken.slice(0, -1)} ${token}`;
-            else tokens.push(token);
-        }
-        return tokens;
-    };
-    const SPACES_REGEXP = / +/g;
     const setScriptSync = (boundExeca, createNested, boundOptions)=>{
         boundExeca.sync = createNested(mapScriptSync, boundOptions);
         boundExeca.s = boundExeca.sync;
@@ -26496,8 +26585,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
     createExeca(()=>({
             isSync: true
         }));
-    createExeca(mapCommandAsync);
-    createExeca(mapCommandSync);
     createExeca(mapNode);
     const $ = createExeca(mapScriptAsync, {}, deepScriptOptions, setScriptSync);
     const { sendMessage: execa_sendMessage, getOneMessage: execa_getOneMessage, getEachMessage: execa_getEachMessage, getCancelSignal: execa_getCancelSignal } = getIpcExport();
@@ -26563,7 +26650,6 @@ Instead, \`yield\` should either be called with a value, or not be called at all
         if (changesSection) parts.push(changesSection);
         return parts.join('\n');
     }
-    const external_node_fs_promises_namespaceObject = require("node:fs/promises");
     const BUMP_PRIORITY = {
         major: 0,
         minor: 1,
