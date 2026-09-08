@@ -21,14 +21,14 @@
     "typecheck": "nx run-many -t typecheck"
   },
   "devDependencies": {
-    "@nx/js": "22.7.8",
+    "@nx/js": "22.7.9",
     "@rightcapital/eslint-config": "65.0.1",
     "@rightcapital/prettier-config": "8.0.5",
     "@rslib/core": "0.23.2",
     "@types/node": "24.13.3",
-    "eslint": "10.8.1",
+    "eslint": "10.9.1",
     "execa": "9.6.1",
-    "nx": "22.7.8",
+    "nx": "22.7.9",
     "prettier": "3.9.6",
     "typescript": "5.9.3"
   },
